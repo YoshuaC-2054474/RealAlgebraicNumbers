@@ -10,8 +10,8 @@
 class Rational
 {
 public:
-	int numerator;
-	int denominator;
+	long long numerator;
+	long long denominator;
 
 	Rational() : numerator(0), denominator(1) {}
 	Rational(int numerator, int denominator)
@@ -29,10 +29,15 @@ public:
 			throw std::invalid_argument("Denominator cannot be zero");
 		}
 		int g = std::gcd(numerator, denominator);
-		this->numerator = static_cast<int>(numerator / g);
-		this->denominator = static_cast<int>(denominator / g);
+		this->numerator = numerator / g;
+		this->denominator = denominator / g;
 	}
 	Rational(int numerator)
+	{
+		this->numerator = numerator;
+		this->denominator = 1;
+	}
+	Rational(long long numerator)
 	{
 		this->numerator = numerator;
 		this->denominator = 1;
@@ -95,9 +100,9 @@ public:
 	{
 		long long num = static_cast<long long>(numerator) * other.denominator + static_cast<long long>(other.numerator) * denominator;
 		long long denom = static_cast<long long>(denominator) * other.denominator;
-		int g = std::gcd(num, denom);
+		/*int g = std::gcd(num, denom);
 		num /= g;
-		denom /= g;
+		denom /= g;*/
 		return Rational(num, denom);
 	}
 	Rational operator+(const int other) const
@@ -108,9 +113,9 @@ public:
 	{
 		long long num = static_cast<long long>(numerator) * other.denominator - static_cast<long long>(other.numerator) * denominator;
 		long long denom = static_cast<long long>(denominator) * other.denominator;
-		int g = std::gcd(num, denom);
+		/*int g = std::gcd(num, denom);
 		num /= g;
-		denom /= g;
+		denom /= g;*/
 		return Rational(num, denom);
 	}
 	Rational operator-() const
@@ -121,18 +126,18 @@ public:
 	{
 		long long num = static_cast<long long>(numerator) * other.numerator;
 		long long denom = static_cast<long long>(denominator) * other.denominator;
-		int g = std::gcd(num, denom);
+		/*int g = std::gcd(num, denom);
 		num /= g;
-		denom /= g;
+		denom /= g;*/
 		return Rational(num, denom);
 	}
 	Rational operator/(const Rational& other) const
 	{
 		long long num = static_cast<long long>(numerator) * other.denominator;
 		long long denom = static_cast<long long>(denominator) * other.numerator;
-		int g = std::gcd(num, denom);
+		/*int g = std::gcd(num, denom);
 		num /= g;
-		denom /= g;
+		denom /= g;*/
 		return Rational(num, denom);
 	}
 

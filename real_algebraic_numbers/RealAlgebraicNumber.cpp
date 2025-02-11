@@ -1,6 +1,7 @@
 #include "RealAlgebraicNumber.h"
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 using Matrix = std::vector<std::vector<Polynomial>>;
 
@@ -125,7 +126,15 @@ void RealAlgebraicNumber::fromInteger(const int n)
 RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& other) const
 {
 	this->polynomial.print();
+	this->interval.lower_bound.print();
+	std::cout << " - ";
+	this->interval.upper_bound.print();
+	std::cout << "\n";
 	other.polynomial.print();
+	other.interval.lower_bound.print();
+	std::cout << " - ";
+	other.interval.upper_bound.print();
+	std::cout << "\n";
 
 	std::vector<Polynomial> f_sub = poly_x_minus_y(this->polynomial);
 
@@ -136,22 +145,32 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& ot
 
 	//Polynomial derivative = f3.derivative();
 	//std::vector<double> coDouble(f3.coefficients.begin(), f3.coefficients.end());
-	std::vector<Polynomial> sturm = f3.sturmSequence(f3);
-	for (const auto& sequence : sturm) {
-		/*for (double coeff : sequence) {
-			std::cout << coeff << " ";
-		
-		}*/
-		sequence.print();
-		std::cout << "\n";
+
+	std::vector<Polynomial> sturm;
+	if (f3.sturm_sequence.empty()) {
+		sturm = f3.sturmSequence(f3);
 	}
+	else
+	{
+		sturm = f3.sturm_sequence;
+	}
+
+	//for (const auto& sequence : sturm) {
+	//	/*for (double coeff : sequence) {
+	//		std::cout << coeff << " ";
+	//	
+	//	}*/
+	//	sequence.print();
+	//	std::cout << "\n";
+	//}
 
 	// Compute initial interval bounds
 	Rational l3 = interval.lower_bound + other.interval.lower_bound;
 	Rational r3 = interval.upper_bound + other.interval.upper_bound;
 
 	// Refine interval until exactly one root is isolated
-	while (variationCount(f3, l3) - variationCount(f3, r3) > 1) {
+	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
+		std::cout << l3 << " - " << r3 << "\n";
 		auto current = RealAlgebraicNumber(f3, l3, r3);
 		current.refine();
 		l3 = current.interval.lower_bound;
@@ -160,6 +179,16 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& ot
 
 	const Interval sumInterval = { l3, r3 };
 	return { f3, sumInterval };
+}
+
+RealAlgebraicNumber RealAlgebraicNumber::operator-(const RealAlgebraicNumber& other) const
+{
+	return *this + (-other);
+}
+
+RealAlgebraicNumber RealAlgebraicNumber::operator-() const
+{
+	return RealAlgebraicNumber(polynomial.reflectY(), -interval.upper_bound, -interval.lower_bound);
 }
 
 int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequence) const {
@@ -180,16 +209,19 @@ int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequen
 
 Rational RealAlgebraicNumber::evaluatePoly(const std::vector<Rational>& sequence, const Rational& x) const {
 	Rational result = 0;
-	for (const Rational coeff : sequence) {
-		result = result * x + coeff;
+	for (int i = sequence.size() - 1; i >= 0; i--) {
+		result = result * x + sequence[i];
 	}
+	/*for (const Rational coeff : sequence) {
+		result = result * x + coeff;
+	}*/
 	return result;
 }
 
-int RealAlgebraicNumber::variationCount(const Polynomial& poly, const Rational& x) const {
+int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, const Rational& x) const {
 	std::vector<Rational> evaluations;
 
-	for (const auto& sequence : poly.sturm_sequence) {
+	for (const auto& sequence : sturm) {
 		evaluations.push_back(evaluatePoly(sequence.coefficients, x));
 	}
 
@@ -207,14 +239,23 @@ void RealAlgebraicNumber::normalize()
 
 	const Rational p = Rational(1) / (Rational(1) + fInf);
 
+	//if (polynomial.sturm_sequence.empty()) {
+	//	Polynomial derivative = polynomial.derivative();
+	//	//polynomial.sturm(derivative);
+	//}
+
+	std::vector<Polynomial> sturm;
 	if (polynomial.sturm_sequence.empty()) {
-		Polynomial derivative = polynomial.derivative();
-		//polynomial.sturm(derivative);
+		sturm = polynomial.sturmSequence(polynomial);
+	}
+	else
+	{
+		sturm = polynomial.sturm_sequence;
 	}
 
-	const int varL = variationCount(polynomial, interval.lower_bound);
-	const int varNegP = variationCount(polynomial, -p);
-	const int varP = variationCount(polynomial, p);
+	const int varL = variationCount(sturm, interval.lower_bound);
+	const int varNegP = variationCount(sturm, -p);
+	const int varP = variationCount(sturm, p);
 	//int varR = variationCount(polynomial.coefficients, interval.upper_bound);
 
 	if (varL > varNegP) {
@@ -231,15 +272,19 @@ void RealAlgebraicNumber::normalize()
 
 void RealAlgebraicNumber::refine()
 {
-	const Rational m = (interval.lower_bound + interval.upper_bound) / 2;
-
+	std::vector<Polynomial> sturm;
 	if (polynomial.sturm_sequence.empty()) {
-		Polynomial derivative = polynomial.derivative();
-		//polynomial.sturm(derivative);
+		sturm = polynomial.sturmSequence(polynomial);
+	}
+	else
+	{
+		sturm = polynomial.sturm_sequence;
 	}
 
-	const int varL = variationCount(polynomial.coefficients, interval.lower_bound);
-	const int varM = variationCount(polynomial.coefficients, m);
+	const Rational m = (interval.lower_bound + interval.upper_bound) / 2;
+
+	const int varL = variationCount(sturm, interval.lower_bound);
+	const int varM = variationCount(sturm, m);
 	if (varL > varM)
 	{
 		interval.upper_bound = m;
@@ -252,5 +297,21 @@ void RealAlgebraicNumber::refine()
 
 std::string RealAlgebraicNumber::toString() const
 {
-	return "Real Algebraic Number:\n" + interval.lower_bound.toString() + " <= x <= " + interval.upper_bound.toString();
+	/*Rational prevLower = interval.lower_bound;
+	Rational prevUpper = interval.upper_bound;
+	while (true) {
+		RealAlgebraicNumber current = {polynomial, prevLower, prevUpper};
+		current.refine();
+		if (current.interval.lower_bound == prevLower && current.interval.upper_bound == prevUpper) {
+			break;
+		}
+		prevLower = current.interval.lower_bound;
+		prevUpper = current.interval.upper_bound;
+	}*/
+	std::string output;
+	output += "Real Algebraic Number:\n";
+	output += polynomial.toString() + "\n";
+	output += interval.lower_bound.toString() + " <= x <= " + interval.upper_bound.toString();
+
+	return output;
 }

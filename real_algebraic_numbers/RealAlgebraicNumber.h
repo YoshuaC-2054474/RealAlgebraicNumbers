@@ -90,7 +90,7 @@ private:
 	Rational evaluatePoly(const std::vector<Rational>& sequence, const Rational& x) const;
 
 	// Function to count variations in Sturm sequence at x
-	int variationCount(const Polynomial& poly, const Rational& x) const;
+	int variationCount(const std::vector<Polynomial>& sturm, const Rational& x) const;
 
 	void normalize();
 

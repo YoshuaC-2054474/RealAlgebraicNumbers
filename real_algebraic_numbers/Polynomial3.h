@@ -231,6 +231,19 @@ public:
         return neg;
     }
 
+    Polynomial reflectY() const
+	{
+		std::vector<Rational> result = coefficients;
+		for (int i = result.size() -1 ; i >= 0; i--)
+		{
+			if (i % 2 == 1)
+			{
+				result[i] = -result[i];
+			}
+		}
+		return Polynomial(result);
+	}
+
     /*vector<double> polyDerivative(const vector<double>& poly) {
         vector<double> deriv;
         for (size_t i = 1; i < poly.size(); i++) {
@@ -274,6 +287,7 @@ public:
             seq.push_back(next);
         }
 
+        sturm_sequence = seq;
         return seq;
     }
 };

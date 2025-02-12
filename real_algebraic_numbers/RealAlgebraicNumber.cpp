@@ -126,7 +126,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Int
 	}
 }
 
-RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Rational lowerBound, const Rational upperBound)
+RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Rational& lowerBound, const Rational& upperBound)
 	: polynomial(polynomial), interval{ lowerBound, upperBound }
 {
 	//normalize();
@@ -287,6 +287,88 @@ RealAlgebraicNumber RealAlgebraicNumber::inverse() const
 	Rational inverseLower = interval.upper_bound.inverse();
 	Rational inverseUpper = interval.lower_bound.inverse();
 	return { inverseCo, inverseLower, inverseUpper };
+}
+
+RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n)
+{
+	// 1. Check Non-Negativity (for even n): If n is even, ensure the algebraic number is non-negative.
+	// If it is negative, the n-th root is not real and the operation is undefined.
+	// 2. Construct the New Polynomial: For the given polynomial p(x) and the root a,
+	// construct the polynomial q(x) = p(x^2). This polynomial will have a^(1/n) as one of its roots.
+	// 3. Adjust the Interval : Compute the new interval for a^(1/n) by taking the n-th roots of the endpoints of the original interval:
+	// If n is even or n is odd and a is non-negative, the new interval is (sqrt(l), sqrt(r)).
+	// If n is odd and a is negative, the new interval is (-sqrt(r.abs()), -sqrt(l.abs())).
+	// 4. Refine the Interval: Refine the interval until exactly one root is isolated.
+	// 5. Return the Result: Return the algebraic number with the new polynomial and interval.
+	if (n % 2 == 0 && interval.lower_bound < 0)
+	{
+		throw std::invalid_argument("Cannot compute even root of negative number");
+	}
+
+	const int newDegree = polynomial.degree * n;
+	std::vector<Rational> newCoeffs(newDegree + 1, 0);
+
+	for (int i = 0; i < polynomial.coefficients.size(); ++i) {
+		newCoeffs[i * n] = polynomial.coefficients[i];
+	}
+
+	Polynomial f3 = { newCoeffs };
+	//newPoly.print();
+
+	/*std::vector<Polynomial> sturm;
+	if (f3.sturm_sequence.empty()) {
+		sturm = f3.sturmSequence(f3);
+	}
+	else
+	{
+		sturm = f3.sturm_sequence;
+	}*/
+
+	Rational l3;
+	Rational r3;
+
+	if (n % 2 != 0 && interval.lower_bound < 0)
+	{
+		l3 = -interval.upper_bound.abs().sqrt(n);
+		r3 = -interval.lower_bound.abs().sqrt(n);
+	}
+	else
+	{
+		l3 = interval.lower_bound.sqrt(n);
+		r3 = interval.upper_bound.sqrt(n);
+	}
+
+	//while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
+	//	//auto f1 = RealAlgebraicNumber(polynomial, interval.lower_bound, r3);
+	//	this->refine();
+	//	if (n % 2 != 0 && interval.lower_bound < 0)
+	//	{
+	//		l3 = -interval.upper_bound.abs().sqrt(n);
+	//		r3 = -interval.lower_bound.abs().sqrt(n);
+	//	}
+	//	else
+	//	{
+	//		l3 = interval.lower_bound.sqrt(n);
+	//		r3 = interval.upper_bound.sqrt(n);
+	//	}
+	//}
+
+	return { f3, { l3, r3 } };
+}
+
+RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const
+{
+	if (n == 0) {
+		std::vector<Rational> coefficients = { 1 };
+		return { coefficients, 1, 1 };
+	}
+	//if (n == 1) return *this;
+	RealAlgebraicNumber result = *this;
+	for (int i = 1; i < n; i++) {
+		RealAlgebraicNumber temp = *this;
+		result *= temp;
+	}
+	return result;
 }
 
 int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequence) const {

@@ -48,6 +48,20 @@ Rational::Rational(double numer)
 	this->denominator = denom / g;
 }
 
+Rational::Rational(float numer)
+{
+	int denom = 1;
+	while (numer != std::floor(numer))
+	{
+		numer *= 10;
+		denom *= 10;
+	}
+	const int numerInt = static_cast<int>(std::floor(numer));
+	const int g = std::gcd(numerInt, denom);
+	this->numerator = numerInt / g;
+	this->denominator = denom / g;
+}
+
 Rational::Rational(const Rational& other)
 {
 	this->numerator = other.numerator;
@@ -196,4 +210,32 @@ Rational Rational::inverse() const
 	{
 		return { denominator, numerator };
 	}
+}
+
+Rational Rational::sqrt(const int n) const
+{
+	if (n == 0)
+	{
+		throw std::invalid_argument("Cannot take zeroth root");
+	}
+	if (n % 2 == 0 && numerator < 0)
+	{
+		throw std::invalid_argument("Cannot take even root of negative number");
+	}
+
+	float result = static_cast<float>(numerator) / denominator;
+	result = std::pow(result, 1.0 / n);
+
+	return result;
+
+	//long long numSqrt = static_cast<long long>(std::pow(std::abs(numerator), 1.0 / n));
+	//long long denomSqrt = static_cast<long long>(std::pow(std::abs(denominator), 1.0 / n));
+
+	//if (n % 2 != 0 && numerator < 0)
+	//{
+	//	return { -numSqrt, denomSqrt };
+	//}
+
+	////long long numSqrt = static_cast<long long>(std::pow(numerator, 1.0 / n));
+	//return { numSqrt, denomSqrt };
 }

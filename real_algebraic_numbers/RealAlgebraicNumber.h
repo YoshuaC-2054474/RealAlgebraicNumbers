@@ -22,7 +22,7 @@ public:
 
 	RealAlgebraicNumber();
 	RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval);
-	RealAlgebraicNumber(const Polynomial& polynomial, const Rational lowerBound, const Rational upperBound);
+	RealAlgebraicNumber(const Polynomial& polynomial, const Rational& lowerBound, const Rational& upperBound);
 	//RealAlgebraicNumber(const RealAlgebraicNumber& other);
 	//RealAlgebraicNumber(const Polynomial& polynomial, int lowerBound, int upperBound);
 	//RealAlgebraicNumber(const std::vector<int>& coefficients, const Interval& interval);
@@ -71,7 +71,7 @@ public:
 	bool operator>=(const RealAlgebraicNumber& other) const;
 
 	RealAlgebraicNumber abs() const;
-	RealAlgebraicNumber sqrt() const;
+	RealAlgebraicNumber sqrt(int n=2);
 	RealAlgebraicNumber pow(int n) const;
 
 	bool isZero() const;

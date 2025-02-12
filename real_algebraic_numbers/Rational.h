@@ -13,6 +13,7 @@ public:
 	Rational(int numerator);
 	Rational(long long numerator);
 	Rational(double numer);
+	Rational(float numer);
 	Rational(const Rational& other);
 
 	std::string toString() const;
@@ -48,6 +49,7 @@ public:
 
 	Rational abs() const;
 	Rational inverse() const;
+	Rational sqrt(const int n) const;
 private:
 	long long numerator;
 	long long denominator;

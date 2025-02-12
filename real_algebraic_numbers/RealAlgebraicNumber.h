@@ -6,7 +6,7 @@
 //#include <algorithm>
 //#include <cmath>
 
-#include "Polynomial3.h"
+#include "Polynomial.h"
 
 struct Interval
 {
@@ -26,7 +26,7 @@ public:
 	//RealAlgebraicNumber(const RealAlgebraicNumber& other);
 	//RealAlgebraicNumber(const Polynomial& polynomial, int lowerBound, int upperBound);
 	//RealAlgebraicNumber(const std::vector<int>& coefficients, const Interval& interval);
-	RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational lowerBound, const Rational upperBound);
+	RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound, const Rational& upperBound);
 
 	void fromInteger(const int n);
 

@@ -6,7 +6,7 @@
 using Matrix = std::vector<std::vector<Polynomial>>;
 
 Polynomial determinant(const Matrix& mat) {
-	int n = mat.size();
+	const int n = mat.size();
 	if (n == 1) return mat[0][0];
 
 	auto det = Polynomial();
@@ -25,7 +25,7 @@ Polynomial determinant(const Matrix& mat) {
 	return det;
 }
 
-int binom(int n, int k) {
+int binom(const int n, int k) {
 	int result = 1;
 	if (k > n) return 0;
 	k = std::min(k, n - k);
@@ -36,7 +36,7 @@ int binom(int n, int k) {
 }
 
 std::vector<Polynomial> poly_x_minus_y(const Polynomial& f) {
-	int n = f.degree;  // degree of f(x)
+	const int n = f.degree;  // degree of f(x)
 	// result[j] will be a polynomial in x corresponding to the coefficient of y^j.
 	std::vector<Polynomial> result(n + 1);
 
@@ -49,7 +49,7 @@ std::vector<Polynomial> poly_x_minus_y(const Polynomial& f) {
 			// The term from a_i * (x-y)^i:
 			// In the binomial expansion, the y^j term is:
 			//   a_i * (-1)^j * binom(i, j) * x^(i-j) * y^j.
-			Rational coeff = f.coefficients[i] * ((j % 2 == 0) ? 1 : -1) * binom(i, j);
+			const Rational coeff = f.coefficients[i] * ((j % 2 == 0) ? 1 : -1) * binom(i, j);
 			poly[i - j] += coeff;
 		}
 		result[j] = poly;
@@ -58,9 +58,9 @@ std::vector<Polynomial> poly_x_minus_y(const Polynomial& f) {
 }
 
 Matrix createSylvesterMatrix(const std::vector<Polynomial>& f_sub, const Polynomial& g) {
-	int m = f_sub.size() - 1;
-	int n = g.degree;
-	int matrixSize = m + n;
+	const int m = f_sub.size() - 1;
+	const int n = g.degree;
+	const int matrixSize = m + n;
 	Matrix sylvesterMatrix;
 
 	for (int i = 0; i < n; i++)
@@ -102,18 +102,30 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Int
 	: polynomial(polynomial), interval(interval)
 {
 	//normalize();
+	while ((this->interval.lower_bound - this->interval.upper_bound).abs() > 0.01)
+	{
+		refine();
+	}
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Rational lowerBound, const Rational upperBound)
 	: polynomial(polynomial), interval{ lowerBound, upperBound }
 {
 	//normalize();
+	while ((this->interval.lower_bound - this->interval.upper_bound).abs() > 0.01)
+	{
+		refine();
+	}
 }
 
-RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational lowerBound, const Rational upperBound)
+RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound, const Rational& upperBound)
 	: polynomial(coefficients), interval{ lowerBound, upperBound }
 {
 	//normalize();
+	while ((this->interval.lower_bound - this->interval.upper_bound).abs() > 0.01)
+	{
+		refine();
+	}
 }
 
 void RealAlgebraicNumber::fromInteger(const int n)
@@ -125,26 +137,9 @@ void RealAlgebraicNumber::fromInteger(const int n)
 
 RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& other) const
 {
-	this->polynomial.print();
-	this->interval.lower_bound.print();
-	std::cout << " - ";
-	this->interval.upper_bound.print();
-	std::cout << "\n";
-	other.polynomial.print();
-	other.interval.lower_bound.print();
-	std::cout << " - ";
-	other.interval.upper_bound.print();
-	std::cout << "\n";
-
-	std::vector<Polynomial> f_sub = poly_x_minus_y(this->polynomial);
-
-	Matrix sylvester = createSylvesterMatrix(f_sub, other.polynomial);
-
+	const std::vector<Polynomial> f_sub = poly_x_minus_y(this->polynomial);
+	const Matrix sylvester = createSylvesterMatrix(f_sub, other.polynomial);
 	Polynomial f3 = determinant(sylvester);
-	f3.print();
-
-	//Polynomial derivative = f3.derivative();
-	//std::vector<double> coDouble(f3.coefficients.begin(), f3.coefficients.end());
 
 	std::vector<Polynomial> sturm;
 	if (f3.sturm_sequence.empty()) {
@@ -155,22 +150,12 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& ot
 		sturm = f3.sturm_sequence;
 	}
 
-	//for (const auto& sequence : sturm) {
-	//	/*for (double coeff : sequence) {
-	//		std::cout << coeff << " ";
-	//	
-	//	}*/
-	//	sequence.print();
-	//	std::cout << "\n";
-	//}
-
 	// Compute initial interval bounds
 	Rational l3 = interval.lower_bound + other.interval.lower_bound;
 	Rational r3 = interval.upper_bound + other.interval.upper_bound;
 
 	// Refine interval until exactly one root is isolated
 	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
-		std::cout << l3 << " - " << r3 << "\n";
 		auto current = RealAlgebraicNumber(f3, l3, r3);
 		current.refine();
 		l3 = current.interval.lower_bound;
@@ -188,16 +173,16 @@ RealAlgebraicNumber RealAlgebraicNumber::operator-(const RealAlgebraicNumber& ot
 
 RealAlgebraicNumber RealAlgebraicNumber::operator-() const
 {
-	return RealAlgebraicNumber(polynomial.reflectY(), -interval.upper_bound, -interval.lower_bound);
+	return { polynomial.reflectY(), -interval.upper_bound, -interval.lower_bound };
 }
 
 int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequence) const {
 	int variations = 0;
 	int prevSign = 0;
 
-	for (Rational value : sequence) {
+	for (const Rational& value : sequence) {
 		if (value != 0) {
-			int currentSign = (value > 0) ? 1 : -1;
+			const int currentSign = (value > 0) ? 1 : -1;
 			if (prevSign != 0 && currentSign != prevSign) {
 				variations++;
 			}
@@ -212,9 +197,6 @@ Rational RealAlgebraicNumber::evaluatePoly(const std::vector<Rational>& sequence
 	for (int i = sequence.size() - 1; i >= 0; i--) {
 		result = result * x + sequence[i];
 	}
-	/*for (const Rational coeff : sequence) {
-		result = result * x + coeff;
-	}*/
 	return result;
 }
 
@@ -231,18 +213,13 @@ int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, co
 void RealAlgebraicNumber::normalize()
 {
 	Rational fInf = 0;
-	for (const Rational coeff : polynomial.coefficients) {
+	for (const Rational& coeff : polynomial.coefficients) {
 		if (fInf < coeff.abs())
 			fInf = coeff.abs();
 		//fInf = std::max(fInf, coeff.abs());
 	}
 
 	const Rational p = Rational(1) / (Rational(1) + fInf);
-
-	//if (polynomial.sturm_sequence.empty()) {
-	//	Polynomial derivative = polynomial.derivative();
-	//	//polynomial.sturm(derivative);
-	//}
 
 	std::vector<Polynomial> sturm;
 	if (polynomial.sturm_sequence.empty()) {
@@ -309,8 +286,7 @@ std::string RealAlgebraicNumber::toString() const
 		prevUpper = current.interval.upper_bound;
 	}*/
 	std::string output;
-	output += "Real Algebraic Number:\n";
-	output += polynomial.toString() + "\n";
+	output += polynomial.toString() + "\t";
 	output += interval.lower_bound.toString() + " <= x <= " + interval.upper_bound.toString();
 
 	return output;

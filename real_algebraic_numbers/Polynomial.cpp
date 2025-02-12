@@ -1,157 +1,199 @@
 #include "Polynomial.h"
 #include <iostream>
 
-Polynomial::Polynomial()
-	: degree(-1), coefficients({}), derivative({})
-{}
-
-Polynomial::Polynomial(const std::vector<int>& coefficients)
-	: degree(static_cast<int>(coefficients.size()) - 1), coefficients(coefficients)
+Polynomial::Polynomial(const std::initializer_list<int> coeffs)
 {
-	computeDerivative();
-	computeSturmSequence();
+    //int exponent = 0;
+    for (auto it = coeffs.begin(); it < coeffs.end(); ++it) {
+        coefficients.push_back(*it);
+    }
+
+    degree = coefficients.empty() ? -1 : coefficients.size() - 1;
 }
 
-void Polynomial::computeDerivative() {
-	if (degree < 1) return;
-	for (size_t i = 1; i < coefficients.size(); ++i) {
-		derivative.push_back(coefficients[i] * i);
-	}
-}
-
-void Polynomial::computeSturmSequence() {
-	sturm_sequence.push_back(coefficients);
-	sturm_sequence.push_back(derivative);
-
-	while (!sturm_sequence.back().empty()) {
-		std::vector<int> rem = polyMod(sturm_sequence[sturm_sequence.size() - 2], sturm_sequence.back());
-		if (rem.empty()) break;
-		sturm_sequence.push_back(rem);
-	}
-}
-
-//void Polynomial::generate_sturm_sequence() {
-//	sturm_sequence.clear();
-//	if (degree == -1) return;
-//
-//	// Add P0 (original polynomial) and P1 (derivative)
-//	sturm_sequence.push_back(coefficients);
-//	Polynomial p1 = derivative;
-//	sturm_sequence.push_back(p1.coefficients);
-//
-//	Polynomial p0 = *this;
-//	while (!p1.degree == -1 && p1.degree > 0) {
-//		Polynomial p_next = -(p0 % p1);
-//		sturm_sequence.push_back(p_next.coefficients);
-//		p0 = p1;
-//		p1 = p_next;
-//	}
-//}
-
-std::vector<int> Polynomial::polyMod(const std::vector<int>& dividend, const std::vector<int>& divisor) {
-	if (divisor[0] == 0) return {}; // Division by zero
-	std::vector<int> rem = dividend;
-	int degDiv = static_cast<int>(divisor.size()) - 1;
-
-	while (rem.size() >= divisor.size()) {
-		const int coef = rem[0] / divisor[0];
-		for (size_t i = 0; i < divisor.size(); i++) {
-			rem[i] -= coef * divisor[i];
-		}
-		while (!rem.empty() && rem[0] == 0) {
-			rem.erase(rem.begin());
-		}
+Polynomial::Polynomial(const std::vector<Rational>& coeffs)
+{
+	coefficients = coeffs;
+	while (!coefficients.empty() && coefficients.back() == 0) {
+		coefficients.pop_back();
 	}
 
-	// Negate remainder for Sturm sequence property
-	for (int& coeff : rem) {
-		coeff = -coeff;
-	}
-
-	return rem;
+	degree = coefficients.empty() ? -1 : coefficients.size() - 1;
 }
 
-std::vector<int> Polynomial::polyAdd(const std::vector<int>& p1, const std::vector<int>& p2) const {
-	std::vector<int> result(std::max(p1.size(), p2.size()), 0);
-	for (size_t i = 0; i < p1.size(); i++) result[i] += p1[i];
-	for (size_t i = 0; i < p2.size(); i++) result[i] += p2[i];
-	return result;
+bool Polynomial::isZero() const {
+    return degree == -1;
 }
 
-std::vector<int> Polynomial::polyMultiply(const std::vector<int>& p1, const std::vector<int>& p2) const {
-	std::vector<int> result(p1.size() + p2.size() - 1, 0);
-	for (size_t i = 0; i < p1.size(); i++) {
-		for (size_t j = 0; j < p2.size(); j++) {
-			result[i + j] += p1[i] * p2[j];
-		}
-	}
-	return result;
+Polynomial Polynomial::operator+(const Polynomial& other) {
+    std::vector<Rational> result = coefficients;
+    for (int i = 0; i < other.coefficients.size(); i++)
+    {
+        while (result.size() <= i) result.push_back(0);
+        result[i] += other.coefficients[i];
+    }
+    return result;
 }
 
-Eigen::MatrixXd Polynomial::buildSylvesterMatrix(const Polynomial& a, const Polynomial& b) const {
-	const std::vector<int>& coA = a.coefficients;
-	const std::vector<int>& coB = b.coefficients;
-	const int m = a.degree; // Degree of A
-	const int n = b.degree; // Degree of B
-	const int size = m + n;
-
-	Eigen::MatrixXd s = Eigen::MatrixXd::Zero(size, size);
-
-	// Fill the first n rows with shifted coefficients of A
-	for (int row = 0; row < n; row++) {
-		for (size_t col = 0; col < coA.size(); col++) {
-			s(row, row + col) = coA[col]; // Shifted placement
-		}
-	}
-
-	// Fill the last m rows with shifted coefficients of B
-	for (int row = 0; row < m; row++) {
-		for (size_t col = 0; col < coB.size(); col++) {
-			s(n + row, row + col) = coB[col]; // Shifted placement
-		}
-	}
-
-	return s;
+Polynomial Polynomial::operator-(const Polynomial& other) {
+    std::vector<Rational> result = coefficients;
+    for (int i = 0; i < other.coefficients.size(); i++)
+    {
+        while (result.size() <= i) result.push_back(0);
+        result[i] -= other.coefficients[i];
+    }
+    return result;
 }
 
-std::vector<int> Polynomial::determinantAsPolynomial(Eigen::MatrixXd& s) const {
-	const int n = s.rows();
-	if (n == 1) return { static_cast<int>(s(0, 0)) }; // Base case: single value matrix
+Polynomial Polynomial::operator*(const Polynomial& other) const {
+    Polynomial result;
+    for (int i = 0; i < coefficients.size(); i++)
+    {
+        for (int j = 0; j < other.coefficients.size(); j++)
+        {
+            while (result.coefficients.size() <= i + j) result.coefficients.push_back(0);
+            result.coefficients[i + j] += coefficients[i] * other.coefficients[j];
+        }
+    }
 
-	std::vector<int> resultantPoly = { 0 }; // Initialize resultant polynomial
-
-	// Expansion along the first row (Laplace Expansion)
-	for (int col = 0; col < n; col++) {
-		Eigen::MatrixXd subMatrix(n - 1, n - 1);
-
-		// Build submatrix by excluding row 0 and column col
-		for (int i = 1; i < n; i++) {
-			int subCol = 0;
-			for (int j = 0; j < n; j++) {
-				if (j == col) continue;
-				subMatrix(i - 1, subCol++) = s(i, j);
-			}
-		}
-
-		// Recursively compute determinant of the submatrix
-		std::vector<int> subDet = determinantAsPolynomial(subMatrix);
-
-		// Multiply by (-1)^col * coefficient from first row
-		if (static_cast<int>(s(0, col)) != 0) {
-			std::vector<int> term = polyMultiply({ static_cast<int>(s(0, col)) }, subDet);
-			if (col % 2 == 1) {
-				for (int& coef : term) coef = -coef; // Apply sign
-			}
-			resultantPoly = polyAdd(resultantPoly, term);
-		}
-	}
-
-	return resultantPoly;
+    result.degree = result.coefficients.size() - 1;
+    return result;
 }
 
-Polynomial Polynomial::computeResultantPolynomial(const Polynomial& other) const {
-	Eigen::MatrixXd s = buildSylvesterMatrix(coefficients, other.coefficients);
-	std::cout << s << "\n";
-	return determinantAsPolynomial(s);
+std::string Polynomial::toString() const {
+    if (coefficients.empty()) return "0";
+    std::string output;
+    for (int i = coefficients.size() - 1; i >= 0; i--) {
+        if (coefficients[i] == 0) continue;
+        //if (coefficients[i] != 1 && coefficients[i] != -1)
+        if (coefficients[i] > 0 && !output.empty()) output += " + ";
+        else if (coefficients[i] < 0) output += " - ";
+        if (coefficients[i].abs() != 1.0 || i == 0)
+            output += coefficients[i].abs().toString();
+        if (i > 1) output += "x^" + std::to_string(i);
+        if (i == 1) output += "x";
+    }
+    return output;
 }
 
+void Polynomial::print() const {
+    std::cout << toString() << "\n";
+}
+
+Polynomial Polynomial::derivative() const {
+    if (isZero()) return {};
+    std::vector<Rational> result(degree, 0);
+    for (int i = 1; i <= degree; ++i) {
+        result[i - 1] = coefficients[i] * i;
+    }
+    return { result };
+}
+
+Polynomial Polynomial::polyTrim(const Polynomial& poly) {
+    Polynomial result = poly;
+    while (!result.coefficients.empty() && result.coefficients.back().abs() < 1e-9) {
+        result.coefficients.pop_back();
+    }
+    result.degree = result.coefficients.empty() ? -1 : result.coefficients.size() - 1;
+    return result;
+}
+
+std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(const Polynomial& dividend, const Polynomial& divisor) {
+    const Polynomial A = polyTrim(dividend);
+    const Polynomial B = polyTrim(divisor);
+
+    if (B.coefficients.empty()) {
+        throw std::runtime_error("Division by zero polynomial!");
+    }
+
+    const int degA = A.degree;
+    const int degB = B.degree;
+
+    std::vector<Rational> quotient(degA - degB + 1, 0);
+    std::vector<Rational> remainder = A.coefficients;
+
+    // Perform polynomial long division
+    while (remainder.size() >= B.coefficients.size() && !remainder.empty()) {
+        const int degR = remainder.size() - 1;
+        Rational factor = remainder.back() / B.coefficients.back();
+        const int power = degR - degB;
+        quotient[power] = factor;
+
+        // Subtract factor * (B shifted by "power") from remainder.
+        std::vector<Rational> sub(power, 0);  // zeros for lower-degree terms
+        for (const Rational& coeff : B.coefficients) {
+            sub.push_back(coeff * factor);
+        }
+
+        // Ensure remainder has enough size.
+        if (remainder.size() < sub.size())
+            remainder.resize(sub.size(), 0.0);
+        for (size_t i = 0; i < sub.size(); i++) {
+            remainder[i] -= sub[i];
+        }
+        remainder = polyTrim(remainder).coefficients;
+    }
+
+    quotient = polyTrim(quotient).coefficients;
+    remainder = polyTrim(remainder).coefficients;
+    return make_pair(quotient, remainder);
+}
+
+std::vector<Rational> Polynomial::polyNegate(const std::vector<Rational>& poly) {
+    std::vector<Rational> neg(poly.size());
+    for (size_t i = 0; i < poly.size(); i++) {
+        neg[i] = -poly[i];
+    }
+    return neg;
+}
+
+Polynomial Polynomial::reflectY() const
+{
+    std::vector<Rational> result = coefficients;
+    for (int i = result.size() - 1; i >= 0; i--)
+    {
+        if (i % 2 == 1)
+        {
+            result[i] = -result[i];
+        }
+    }
+    return { result };
+}
+
+// Generate the Sturm sequence
+std::vector<Polynomial> Polynomial::sturmSequence(const Polynomial& p) {
+    std::vector<Polynomial> seq;
+
+    const Polynomial S0 = polyTrim(p);
+    if (S0.coefficients.empty()) {
+        throw std::runtime_error("Zero polynomial provided.");
+    }
+    seq.push_back(S0);
+
+    // S1 = p'(x)
+    const Polynomial S1 = S0.derivative();
+    seq.push_back(S1);
+
+    // Compute subsequent sequence members until remainder becomes zero.
+    while (true) {
+        // Let S_prev = S_{i-1} and S_curr = S_i.
+        const Polynomial& S_prev = seq[seq.size() - 2];
+        const Polynomial& S_curr = seq.back();
+
+        // Compute polynomial remainder of S_prev divided by S_curr.
+        auto divRes = polyDivide(S_prev, S_curr);
+        std::vector<Rational> rem = divRes.second;
+
+        // If remainder is zero, stop.
+        if (rem.empty() || (rem.size() == 1 && rem[0].abs() < 1e-9)) {
+            break;
+        }
+
+        // Next term in Sturm sequence is the negative of the remainder.
+        std::vector<Rational> next = polyNegate(rem);
+        seq.push_back(next);
+    }
+
+    sturm_sequence = seq;
+    return seq;
+}

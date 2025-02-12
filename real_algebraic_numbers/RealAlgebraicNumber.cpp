@@ -57,6 +57,24 @@ std::vector<Polynomial> poly_x_minus_y(const Polynomial& f) {
 	return result;
 }
 
+std::vector<Polynomial> poly_x_over_y(const Polynomial& f)
+{
+	int n = f.degree; // degree of f
+	// We will have (n+1) polynomials: one for each power of y, from y^0 up to y^n.
+	// For j = n-i, the corresponding polynomial in x is the monomial f[i]*x^i.
+	std::vector<Polynomial> result(n + 1);
+	for (int i = 0; i <= n; i++) {
+		int j = n - i; // j is the power of y
+		// Create a polynomial in x which is a monomial of degree i.
+		// Represented as a vector of length (i+1) with the coefficient for x^i equal to f[i].
+		std::vector<Rational> poly(i + 1, 0);
+		poly[i] = f.coefficients[i];
+		// Place this polynomial in the result corresponding to y^j.
+		result[j] = poly;
+	}
+	return result;
+}
+
 Matrix createSylvesterMatrix(const std::vector<Polynomial>& f_sub, const Polynomial& g) {
 	const int m = f_sub.size() - 1;
 	const int n = g.degree;
@@ -135,10 +153,10 @@ void RealAlgebraicNumber::fromInteger(const int n)
 	this->interval.upper_bound = n;
 }
 
-RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& other) const
+RealAlgebraicNumber RealAlgebraicNumber::operator+(RealAlgebraicNumber& other)
 {
-	const std::vector<Polynomial> f_sub = poly_x_minus_y(this->polynomial);
-	const Matrix sylvester = createSylvesterMatrix(f_sub, other.polynomial);
+	const std::vector<Polynomial> fXminY = poly_x_minus_y(this->polynomial);
+	const Matrix sylvester = createSylvesterMatrix(fXminY, other.polynomial);
 	Polynomial f3 = determinant(sylvester);
 
 	std::vector<Polynomial> sturm;
@@ -156,24 +174,119 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& ot
 
 	// Refine interval until exactly one root is isolated
 	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
-		auto current = RealAlgebraicNumber(f3, l3, r3);
-		current.refine();
-		l3 = current.interval.lower_bound;
-		r3 = current.interval.upper_bound;
+		this->refine();
+		other.refine();
+		l3 = interval.lower_bound + other.interval.lower_bound;
+		r3 = interval.upper_bound + other.interval.upper_bound;
 	}
 
 	const Interval sumInterval = { l3, r3 };
 	return { f3, sumInterval };
 }
 
-RealAlgebraicNumber RealAlgebraicNumber::operator-(const RealAlgebraicNumber& other) const
+RealAlgebraicNumber RealAlgebraicNumber::operator-(const RealAlgebraicNumber& other)
 {
-	return *this + (-other);
+	RealAlgebraicNumber temp = -other;
+	return *this + temp;
+}
+
+static Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
+	Rational min = r1;
+	if (r2 < min) min = r2;
+	if (r3 < min) min = r3;
+	if (r4 < min) min = r4;
+	return min;
+}
+
+static Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
+	Rational max = r1;
+	if (r2 > max) max = r2;
+	if (r3 > max) max = r3;
+	if (r4 > max) max = r4;
+	return max;
+}
+
+void printSylvester(const Matrix& sylvester)
+{
+	for (int i = 0; i < sylvester.size(); i++)
+	{
+		for (int j = 0; j < sylvester[i].size(); j++)
+		{
+			std::cout << sylvester[i][j].toString() << " ";
+		}
+		std::cout << std::endl;
+	}
+}
+
+RealAlgebraicNumber RealAlgebraicNumber::operator*(RealAlgebraicNumber& other)
+{
+	const std::vector<Polynomial> fXoverY = poly_x_over_y(this->polynomial);
+	const Matrix sylvester = createSylvesterMatrix(fXoverY, other.polynomial);
+	//printSylvester(sylvester);
+	Polynomial f3 = determinant(sylvester);
+
+	std::vector<Polynomial> sturm;
+	if (f3.sturm_sequence.empty()) {
+		sturm = f3.sturmSequence(f3);
+	}
+	else
+	{
+		sturm = f3.sturm_sequence;
+	}
+
+	/*for (int i = 0; i < sturm.size(); i++)
+	{
+		std::cout << sturm[i].toString() << std::endl;
+	}*/
+
+	Rational l3 = minRational(
+		interval.lower_bound * other.interval.lower_bound,
+		interval.lower_bound * other.interval.upper_bound,
+		interval.upper_bound * other.interval.lower_bound,
+		interval.upper_bound * other.interval.upper_bound);
+	Rational r3 = maxRational(
+		interval.lower_bound * other.interval.lower_bound,
+		interval.lower_bound * other.interval.upper_bound,
+		interval.upper_bound * other.interval.lower_bound,
+		interval.upper_bound * other.interval.upper_bound);
+
+	// Refine interval until exactly one root is isolated
+	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
+		//auto f1 = RealAlgebraicNumber(polynomial, interval.lower_bound, r3);
+		this->refine();
+		other.refine();
+		l3 = minRational(
+			interval.lower_bound * other.interval.lower_bound,
+			interval.lower_bound * other.interval.upper_bound,
+			interval.upper_bound * other.interval.lower_bound,
+			interval.upper_bound * other.interval.upper_bound);
+		r3 = maxRational(
+			interval.lower_bound * other.interval.lower_bound,
+			interval.lower_bound * other.interval.upper_bound,
+			interval.upper_bound * other.interval.lower_bound,
+			interval.upper_bound * other.interval.upper_bound);
+	}
+
+	return { f3, { l3, r3 } };
+}
+
+RealAlgebraicNumber RealAlgebraicNumber::operator/(const RealAlgebraicNumber& other)
+{
+	RealAlgebraicNumber temp = other.inverse();
+	return *this * temp;
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator-() const
 {
 	return { polynomial.reflectY(), -interval.upper_bound, -interval.lower_bound };
+}
+
+RealAlgebraicNumber RealAlgebraicNumber::inverse() const
+{
+	std::vector<Rational> inverseCo(polynomial.coefficients.rbegin(), polynomial.coefficients.rend());
+	Rational inverseLower = interval.upper_bound.inverse();
+	Rational inverseUpper = interval.lower_bound.inverse();
+	return { inverseCo, inverseLower, inverseUpper };
 }
 
 int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequence) const {
@@ -287,7 +400,11 @@ std::string RealAlgebraicNumber::toString() const
 	}*/
 	std::string output;
 	output += polynomial.toString() + "\t";
-	output += interval.lower_bound.toString() + " <= x <= " + interval.upper_bound.toString();
+	const double lower = static_cast<double>(interval.lower_bound);
+	output += std::to_string(lower);
+	output += " <= x <= ";
+	const double upper = static_cast<double>(interval.upper_bound);
+	output += std::to_string(upper);
 
 	return output;
 }

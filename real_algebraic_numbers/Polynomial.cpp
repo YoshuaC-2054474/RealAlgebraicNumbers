@@ -180,6 +180,10 @@ std::vector<Polynomial> Polynomial::sturmSequence(const Polynomial& p) {
         const Polynomial& S_prev = seq[seq.size() - 2];
         const Polynomial& S_curr = seq.back();
 
+        if (S_curr.degree == 0) {
+            break;
+        }
+
         // Compute polynomial remainder of S_prev divided by S_curr.
         auto divRes = polyDivide(S_prev, S_curr);
         std::vector<Rational> rem = divRes.second;

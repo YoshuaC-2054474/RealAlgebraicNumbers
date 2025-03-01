@@ -31,9 +31,12 @@ public:
 
 	Rational operator+(const Rational& other) const;
 	Rational operator-(const Rational& other) const;
+	friend Rational operator-(const long long lsh, const Rational& other);
 	Rational operator-() const;
 	Rational operator*(const Rational& other) const;
 	Rational operator/(const Rational& other) const;
+	friend Rational operator/(const long long lsh, const Rational& other);
+	/*Rational operator%(const Rational& other) const;*/
 
 	Rational operator+=(const Rational& other);
 	Rational operator-=(const Rational& other);
@@ -50,6 +53,7 @@ public:
 	Rational abs() const;
 	Rational inverse() const;
 	Rational sqrt(const int n) const;
+	Rational gcd(const Rational& other) const;
 private:
 	long long numerator;
 	long long denominator;

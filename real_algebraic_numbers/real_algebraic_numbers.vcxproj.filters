@@ -18,16 +18,22 @@
     <ClInclude Include="RealAlgebraicNumber.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Polynomial.h">
+    <ClInclude Include="Polynomial4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Polynomial2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Polynomial3.h">
+    <ClInclude Include="Polynomial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rational.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rational2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rational3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,10 +41,22 @@
     <ClCompile Include="RealAlgebraicNumber.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Polynomial.cpp">
+    <ClCompile Include="Polynomial4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rational.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Polynomial.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rational2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rational3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

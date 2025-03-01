@@ -4,6 +4,7 @@
 #include <iostream>
 
 using Matrix = std::vector<std::vector<Polynomial>>;
+using Matrix2 = std::vector<std::vector<std::vector<Rational>>>;
 
 Polynomial determinant(const Matrix& mat) {
 	const int n = mat.size();
@@ -21,6 +22,36 @@ Polynomial determinant(const Matrix& mat) {
 		Polynomial term = mat[0][j] * determinant(minor);
 		if (j % 2) term = term * Polynomial({ -1 });
 		det += term;
+	}
+	return det;
+}
+
+std::vector<Rational> determinant2(const Matrix2& mat) {
+	const int n = mat.size();
+	if (n == 1) return mat[0][0];
+
+	std::vector<Rational> det(mat[0][0].size(), 0);
+	for (int j = 0; j < n; ++j) {
+		Matrix2 minor;
+		for (int i = 1; i < n; ++i) {
+			std::vector<std::vector<Rational>> row;
+			for (int k = 0; k < n; ++k)
+				if (k != j) row.push_back(mat[i][k]);
+			minor.push_back(row);
+		}
+		std::vector<Rational> term = mat[0][j];
+		std::vector<Rational> minorDet = determinant2(minor);
+		for (size_t k = 0; k < term.size(); ++k) {
+			term[k] *= minorDet[k];
+		}
+		if (j % 2) {
+			for (Rational& coeff : term) {
+				coeff = -coeff;
+			}
+		}
+		for (size_t k = 0; k < det.size(); ++k) {
+			det[k] += term[k];
+		}
 	}
 	return det;
 }
@@ -223,7 +254,14 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*(RealAlgebraicNumber& other)
 	const std::vector<Polynomial> fXoverY = poly_x_over_y(this->polynomial);
 	const Matrix sylvester = createSylvesterMatrix(fXoverY, other.polynomial);
 	//printSylvester(sylvester);
-	Polynomial f3 = determinant(sylvester);
+	//Polynomial f3 = determinant(sylvester);
+	std::vector<Rational> f3Coeff = determinant2(sylvester);
+	Polynomial f3 = {f3Coeff};
+
+	for (auto coef : f3.coefficients)
+	{
+		std::cout << coef.toString() << " ";
+	}
 
 	std::vector<Polynomial> sturm;
 	if (f3.sturm_sequence.empty()) {
@@ -288,6 +326,11 @@ RealAlgebraicNumber RealAlgebraicNumber::inverse() const
 	Rational inverseUpper = interval.lower_bound.inverse();
 	return { inverseCo, inverseLower, inverseUpper };
 }
+
+//bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const
+//{
+//	
+//}
 
 RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n)
 {

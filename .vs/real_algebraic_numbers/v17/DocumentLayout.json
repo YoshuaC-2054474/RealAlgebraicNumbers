@@ -1,25 +1,52 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\",
+  "WorkspaceRootPath": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\RealAlgebraicNumber.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial3.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Polynomial3.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\PROGRAM FILES\\MICROSOFT VISUAL STUDIO\\2022\\COMMUNITY\\VC\\TOOLS\\MSVC\\14.39.33519\\INCLUDE\\VECTOR||{3B902123-F8A7-4915-9F01-361F908088D0}|"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\RealAlgebraicNumber.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Polynomial.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Polynomial.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational3.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Rational3.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational3.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Rational3.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\RealAlgebraicNumber.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Rational.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational2.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Rational2.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational2.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Rational2.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{C96E752D-A56C-47E8-86F0-F01B34AC71FF}|real_algebraic_numbers\\real_algebraic_numbers.vcxproj|solutionrelative:real_algebraic_numbers\\Rational.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
@@ -30,30 +57,118 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 9,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Rational.h",
-              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.h",
-              "RelativeDocumentMoniker": "real_algebraic_numbers\\Rational.h",
-              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.h",
-              "RelativeToolTip": "real_algebraic_numbers\\Rational.h",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAwwBwAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-02-10T22:51:31.094Z",
+              "DocumentIndex": 1,
+              "Title": "vector",
+              "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.39.33519\\include\\vector",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.39.33519\\include\\vector",
+              "ToolTip": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.39.33519\\include\\vector",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.39.33519\\include\\vector",
+              "ViewState": "AQIAAGQHAAAAAAAAAAAkwG4HAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-02-24T00:00:06.798Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Polynomial3.h",
-              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial3.h",
-              "RelativeDocumentMoniker": "real_algebraic_numbers\\Polynomial3.h",
-              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial3.h",
-              "RelativeToolTip": "real_algebraic_numbers\\Polynomial3.h",
-              "ViewState": "AgIAANwAAAAAAAAAAAAwwOoAAAACAAAAAAAAAA==",
+              "DocumentIndex": 4,
+              "Title": "Rational3.cpp",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational3.cpp",
+              "RelativeDocumentMoniker": "real_algebraic_numbers\\Rational3.cpp",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational3.cpp",
+              "RelativeToolTip": "real_algebraic_numbers\\Rational3.cpp",
+              "ViewState": "AQIAAFUAAAAAAAAAAAAkwCgAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-02-16T22:07:52.935Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Rational3.h",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational3.h",
+              "RelativeDocumentMoniker": "real_algebraic_numbers\\Rational3.h",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational3.h",
+              "RelativeToolTip": "real_algebraic_numbers\\Rational3.h",
+              "ViewState": "AQIAAAwAAAAAAAAAAAAYwA4AAAAiAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-02-16T22:07:14.454Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Rational2.cpp",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational2.cpp",
+              "RelativeDocumentMoniker": "real_algebraic_numbers\\Rational2.cpp",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational2.cpp",
+              "RelativeToolTip": "real_algebraic_numbers\\Rational2.cpp",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAJ0AAAASAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-02-15T01:13:15.988Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Rational2.h",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational2.h",
+              "RelativeDocumentMoniker": "real_algebraic_numbers\\Rational2.h",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational2.h",
+              "RelativeToolTip": "real_algebraic_numbers\\Rational2.h",
+              "ViewState": "AQIAACkAAAAAAAAAAADwvy4AAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-02-15T01:12:03.023Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Rational.cpp",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.cpp",
+              "RelativeDocumentMoniker": "real_algebraic_numbers\\Rational.cpp",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.cpp",
+              "RelativeToolTip": "real_algebraic_numbers\\Rational.cpp",
+              "ViewState": "AQIAAB4AAAAAAAAAAAAiwCgAAAACAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-02-11T23:26:55.122Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "Rational.h",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.h",
+              "RelativeDocumentMoniker": "real_algebraic_numbers\\Rational.h",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Rational.h",
+              "RelativeToolTip": "real_algebraic_numbers\\Rational.h",
+              "ViewState": "AQIAACcAAAAAAAAAAAAIwCwAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-02-10T22:51:31.094Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Polynomial.cpp",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial.cpp",
+              "RelativeDocumentMoniker": "real_algebraic_numbers\\Polynomial.cpp",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial.cpp",
+              "RelativeToolTip": "real_algebraic_numbers\\Polynomial.cpp",
+              "ViewState": "AQIAAEIAAAAAAAAAAAAiwFIAAAAFAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-02-11T23:45:56.55Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Polynomial.h",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial.h",
+              "RelativeDocumentMoniker": "real_algebraic_numbers\\Polynomial.h",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\Polynomial.h",
+              "RelativeToolTip": "real_algebraic_numbers\\Polynomial.h",
+              "ViewState": "AQIAAAQAAAAAAAAAAAA1wAoAAAAZAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-02-09T00:23:19.804Z",
               "EditorCaption": ""
@@ -62,37 +177,37 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "RealAlgebraicNumber.cpp",
-              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.cpp",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.cpp",
               "RelativeDocumentMoniker": "real_algebraic_numbers\\RealAlgebraicNumber.cpp",
-              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.cpp",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.cpp",
               "RelativeToolTip": "real_algebraic_numbers\\RealAlgebraicNumber.cpp",
-              "ViewState": "AgIAAJMAAAAAAAAAAAAAAK4AAAATAAAAAAAAAA==",
+              "ViewState": "AQIAAF8AAAAAAAAAAAAmwGwAAAAGAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-02-08T16:49:22.586Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 7,
               "Title": "RealAlgebraicNumber.h",
-              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.h",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.h",
               "RelativeDocumentMoniker": "real_algebraic_numbers\\RealAlgebraicNumber.h",
-              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.h",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\RealAlgebraicNumber.h",
               "RelativeToolTip": "real_algebraic_numbers\\RealAlgebraicNumber.h",
-              "ViewState": "AgIAABsAAAAAAAAAAAAAADUAAABGAAAAAAAAAA==",
+              "ViewState": "AQIAAAwAAAAAAAAAAAAYwD8AAAAlAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2025-02-07T23:00:53.325Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "main.cpp",
-              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\main.cpp",
+              "DocumentMoniker": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\main.cpp",
               "RelativeDocumentMoniker": "real_algebraic_numbers\\main.cpp",
-              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bapr\\RealAlgebraicNumbers\\real_algebraic_numbers\\main.cpp",
+              "ToolTip": "C:\\Users\\yoshu\\Desktop\\bachelorproef\\RealAlgebraicNumbers\\real_algebraic_numbers\\main.cpp",
               "RelativeToolTip": "real_algebraic_numbers\\main.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAKAAAAAAAAAA==",
+              "ViewState": "AQIAAAgAAAAAAAAAAAAmwAsAAABBAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-02-08T18:54:34.646Z",
               "EditorCaption": ""

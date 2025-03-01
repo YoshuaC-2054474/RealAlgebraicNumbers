@@ -1,5 +1,6 @@
 #include "Polynomial.h"
 #include <iostream>
+#include <numeric>
 
 Polynomial::Polynomial(const std::initializer_list<int> coeffs)
 {
@@ -8,17 +9,65 @@ Polynomial::Polynomial(const std::initializer_list<int> coeffs)
         coefficients.push_back(*it);
     }
 
-    degree = coefficients.empty() ? -1 : coefficients.size() - 1;
+    //degree = coefficients.empty() ? -1 : coefficients.size() - 1;
+    normalize();
 }
 
 Polynomial::Polynomial(const std::vector<Rational>& coeffs)
 {
 	coefficients = coeffs;
-	while (!coefficients.empty() && coefficients.back() == 0) {
+	/*while (!coefficients.empty() && coefficients.back() == 0) {
+		coefficients.pop_back();
+	}*/
+
+	//degree = coefficients.empty() ? -1 : coefficients.size() - 1;
+    normalize();
+}
+
+Rational findGCD(const std::vector<Rational>& arr) {
+    Rational res = arr[0];
+     //res.toInts();
+    for (int i = 1; i < arr.size(); i++) {
+        res = arr[i].gcd(res);// gcd(arr[i], res);
+        //arr[i].toInts();
+        //res.toInts();
+        // If res becomes 1 at any iteration then it remains 1
+        // So no need to check further
+        if (res == 1)
+            return 1;
+    }
+    //res.toInts();
+    //std::cout << "\n";
+    return res;
+}
+
+void Polynomial::normalize()
+{
+	while (coefficients.size() > 1 && coefficients.back() == 0) {
 		coefficients.pop_back();
 	}
-
 	degree = coefficients.empty() ? -1 : coefficients.size() - 1;
+
+	if (coefficients.empty()) return;
+
+    const Rational gcd = findGCD(coefficients);
+	int gcdInt = gcd.toInts();
+    if (gcd > 1)
+    {
+        for (int i = 0; i < coefficients.size(); i++) {
+            coefficients[i] /= gcd;
+        }
+    }
+
+    //const Rational highestCo = coefficients.back();
+    //int highestCoInt = highestCo.toInts();
+    ////std::cout << "\n";
+    //if (highestCo != 0)
+    //{
+    //    for (int i = 0; i < coefficients.size(); i++) {
+    //        coefficients[i] /= highestCo;
+    //    }
+    //}
 }
 
 bool Polynomial::isZero() const {

@@ -1,7 +1,7 @@
 #ifndef POLYNOMIAL3_H
 #define POLYNOMIAL3_H
 
-#include "Rational.h"
+#include "Rational3.h"
 #include <string>
 #include <vector>
 
@@ -14,6 +14,8 @@ public:
 	Polynomial() : degree(-1), coefficients({}) {}
     Polynomial(const std::initializer_list<int> coeffs);
     Polynomial(const std::vector<Rational>& coeffs);
+
+    void normalize();
 
     // Check if the polynomial is zero
     bool isZero() const;

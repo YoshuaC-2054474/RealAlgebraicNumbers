@@ -1,6 +1,7 @@
 #include "Polynomial.h"
 #include <iostream>
 #include <numeric>
+#include <boost/multiprecision/cpp_int.hpp>
 
 Polynomial::Polynomial(const std::initializer_list<int> coeffs)
 {
@@ -42,84 +43,139 @@ Rational findGCD(const std::vector<Rational>& arr) {
 }
 
 // Make a polynomial monic by dividing by its leading coefficient
-Polynomial make_monic(const Polynomial& poly) {
-    if (poly.coefficients.empty()) return {};
-    const Rational lc = poly.coefficients.back();
-	std::cout << lc.toString() << "\n";
-    std::vector<Rational> monic;
-    for (const Rational& coeff : poly.coefficients) {
-        monic.push_back(coeff / lc);
-		std::cout << coeff.toString() << " / " << lc.toString() << " = " << (coeff / lc).toString() << "\n";
-    }
-    return monic;
-}
+//Polynomial make_monic(const Polynomial& poly) {
+//    if (poly.coefficients.empty()) return {};
+//    const Rational lc = poly.coefficients.back();
+//	//std::cout << lc.toString() << "\n";
+//    std::vector<Rational> monic;
+//    for (const Rational& coeff : poly.coefficients) {
+//        monic.push_back(coeff / lc);
+//		//std::cout << coeff.toString() << " / " << lc.toString() << " = " << (coeff / lc).toString() << "\n";
+//    }
+//    return monic;
+//}
 
 // Check if a quadratic polynomial factors over integers
-bool is_reducible_quadratic(const Polynomial& poly) {
-    if (poly.coefficients.size() != 3) return false;
-    Rational a = poly.coefficients[2];
-    Rational b = poly.coefficients[1];
-    Rational c = poly.coefficients[0];
-    Rational discriminant = b * b - 4 * a * c;
-    if (discriminant < 0) return false;
-    Rational sqrtDisc = static_cast<int>(discriminant.sqrt());
-    return (sqrtDisc * sqrtDisc == discriminant);
-}
+//bool is_reducible_quadratic(const Polynomial& poly) {
+//    if (poly.coefficients.size() != 3) return false;
+//    Rational a = poly.coefficients[2];
+//    Rational b = poly.coefficients[1];
+//    Rational c = poly.coefficients[0];
+//    Rational discriminant = b * b - 4 * a * c;
+//    if (discriminant < 0) return false;
+//    Rational sqrtDisc = static_cast<int>(discriminant.sqrt());
+//    return (sqrtDisc * sqrtDisc == discriminant);
+//}
 
 // Factor a reducible quadratic polynomial into linear terms
-std::vector<Polynomial> factor_quadratic(const Polynomial& poly) {
-    if (!is_reducible_quadratic(poly)) return { poly };
-    Rational a = poly.coefficients[2];
-    Rational b = poly.coefficients[1];
-    Rational c = poly.coefficients[0];
-    Rational discriminant = b * b - 4 * a * c;
-    int sqrtDisc = static_cast<int>(discriminant.sqrt());
-
-    std::vector<Polynomial> factors;
-    // Check possible rational roots p/q where p divides c and q divides a
-    for (Rational p : {1, -1}) {
-        for (Rational q : {1, -1}) {
-            if (c % p != 0 || a % q != 0) continue;
-            Rational num = p * (c / p);
-            Rational den = q * (a / q);
-            if (den == 0) continue;
-            if ((num * 2 * den) == (-b + sqrtDisc) * den ||
-                (num * 2 * den) == (-b - sqrtDisc) * den) {
-                Rational root = num / den;
-                Polynomial factor({ -root, 1 });
-                factors.push_back(factor);
-            }
-        }
-    }
-    if (factors.size() == 2) return factors;
-    return { poly };
-}
+//std::vector<Polynomial> factor_quadratic(const Polynomial& poly) {
+//    if (!is_reducible_quadratic(poly)) return { poly };
+//    Rational a = poly.coefficients[2];
+//    Rational b = poly.coefficients[1];
+//    Rational c = poly.coefficients[0];
+//    Rational discriminant = b * b - 4 * a * c;
+//    int sqrtDisc = static_cast<int>(discriminant.sqrt());
+//
+//    std::vector<Polynomial> factors;
+//    // Check possible rational roots p/q where p divides c and q divides a
+//    for (Rational p : {1, -1}) {
+//        for (Rational q : {1, -1}) {
+//            if (c % p != 0 || a % q != 0) continue;
+//            Rational num = p * (c / p);
+//            Rational den = q * (a / q);
+//            if (den == 0) continue;
+//            if ((num * 2 * den) == (-b + sqrtDisc) * den ||
+//                (num * 2 * den) == (-b - sqrtDisc) * den) {
+//                Rational root = num / den;
+//                Polynomial factor({ -root, 1 });
+//                factors.push_back(factor);
+//            }
+//        }
+//    }
+//    if (factors.size() == 2) return factors;
+//    return { poly };
+//}
 
 // Main function to get minimal polynomials
-std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
-    std::vector<Polynomial> result;
-    if (poly.coefficients.size() <= 1) return result;
+//std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
+//    std::vector<Polynomial> result;
+//    if (poly.coefficients.size() <= 1) return result;
+//
+//    Rational content = findGCD(poly.coefficients);
+//    std::vector<Rational> primitive;
+//    for (const Rational& coeff : poly.coefficients) {
+//        primitive.push_back(coeff / content);
+//    }
+//
+//    if (primitive.size() == 2) { // Linear
+//        result.push_back(make_monic(primitive));
+//    }
+//    else if (primitive.size() == 3) { // Quadratic
+//        auto factors = factor_quadratic(primitive);
+//        for (const auto& factor : factors) {
+//            result.push_back(make_monic(factor));
+//        }
+//    }
+//    else { // Higher degree (assumed irreducible for simplicity)
+//        result.push_back(make_monic(primitive));
+//    }
+//
+//    return result;
+//}
 
-    Rational content = findGCD(poly.coefficients);
-    std::vector<Rational> primitive;
-    for (const Rational& coeff : poly.coefficients) {
-        primitive.push_back(coeff / content);
+// Evaluate polynomial using Horner's method
+Rational evaluate(const Polynomial& poly, Rational x) {
+    // Start with the coefficient of the highest degree term.
+    Rational result = poly.coefficients.back();
+    // Iterate backwards through the vector.
+    for (int i = poly.coefficients.size() - 2; i >= 0; i--) {
+        result = result * x + poly.coefficients[i];
     }
+    return result;
+}
 
-    if (primitive.size() == 2) { // Linear
-        result.push_back(make_monic(primitive));
+// Synthetic division: divides poly by (x - r) and returns quotient coefficients.
+std::pair<Polynomial, Rational> syntheticDivision(const Polynomial& poly, Rational r) {
+    int n = poly.degree; // Degree of the polynomial.
+    std::vector<Rational> quotient(n, 0);
+    // Set the highest coefficient for the quotient.
+    quotient[n - 1] = poly.coefficients.back();
+    // Iterate backwards to compute the quotient coefficients.
+    for (int i = n - 1; i > 0; i--) {
+        quotient[i - 1] = poly.coefficients[i] + r * quotient[i];
     }
-    else if (primitive.size() == 3) { // Quadratic
-        auto factors = factor_quadratic(primitive);
-        for (const auto& factor : factors) {
-            result.push_back(make_monic(factor));
+    // Compute the remainder.
+    Rational remainder = poly.coefficients[0] + r * quotient[0];
+    return { quotient, remainder };
+}
+
+void factorPolynomial(const Polynomial& poly)
+{
+    const std::vector<cpp_int> constantFactors = poly.coefficients[0].factorNumerator();
+    const std::vector<cpp_int> leadingFactors = poly.coefficients.back().factorNumerator();
+    std::vector<Rational> rootOptions = {{0,1}};
+    // options for root are all p/q for p the factors of the constant term and q the factors of the leading term
+    for (const cpp_int& p : constantFactors) {
+        for (const cpp_int& q : leadingFactors) {
+            if (q == 0) continue;
+            rootOptions.push_back({ p, q });
         }
     }
-    else { // Higher degree (assumed irreducible for simplicity)
-        result.push_back(make_monic(primitive));
+
+    bool hasFactored = false;
+    for (const Rational& root : rootOptions) {
+        auto minimal = syntheticDivision(poly, root);
+        if (minimal.second == 0) {
+			hasFactored = true;
+            std::cout << "(x - " << root.toString() << ") ";
+
+            factorPolynomial(minimal.first);
+        }
     }
 
-    return result;
+	if (!hasFactored) {
+		std::cout << "(" << poly.toString() << ")";
+	}
 }
 
 void Polynomial::normalize()
@@ -142,21 +198,26 @@ void Polynomial::normalize()
         }
     }
 
-    //const Rational highestCo = coefficients.back();
-    //int highestCoInt = highestCo.toInts();
-    ////std::cout << "\n";
-    //if (highestCo != 0)
-    //{
-    //    for (int i = 0; i < coefficients.size(); i++) {
-    //        coefficients[i] /= highestCo;
-    //    }
-    //}
-	std::vector<Polynomial> minimalPolys = get_minimal_polynomials(*this);
+    const Rational highestCo = coefficients.back();
+    int highestCoInt = highestCo.toInts();
+    //std::cout << "\n";
+    if (highestCo != 0)
+    {
+        for (int i = 0; i < coefficients.size(); i++) {
+            coefficients[i] /= highestCo;
+        }
+    }
+
+	/*std::vector<Polynomial> minimalPolys = get_minimal_polynomials(*this);
 	std::cout << "\n\nMinimal Polynomials of " << toString() << "\n";
 	for (const Polynomial& poly : minimalPolys) {
 		std::cout << "\t" << poly.toString() << '\n';
 	}
-	std::cout << "\n\n";
+	std::cout << "\n\n";*/
+
+    std::cout << "\n\nMinimal Polynomials of " << toString() << "\n";
+	factorPolynomial(*this);
+    std::cout << "\n\n";
 
 	isNomalized = true;
 }

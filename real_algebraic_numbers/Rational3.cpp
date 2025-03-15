@@ -221,3 +221,25 @@ Rational Rational::gcd(const Rational& other) const {
 //    cpp_int(g.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
 //    return g;
 //}
+
+std::vector<cpp_int> Rational::factorNumerator() const
+{
+	std::vector<cpp_int> factors;
+    //cpp_int num = numerator;
+    //int numInt = num.convert_to<int>();
+    if (numerator > 0)
+    {
+        for (cpp_int i = 1; i <= numerator; i++)
+        {
+            if (numerator % i == 0) factors.push_back(i);
+        }
+    }
+	else
+	{
+		for (cpp_int i = -1; i >= numerator; i--)
+		{
+			if (numerator % i == 0) factors.push_back(i);
+		}
+	}
+	return factors;
+}

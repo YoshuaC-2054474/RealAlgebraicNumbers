@@ -533,7 +533,7 @@ std::string RealAlgebraicNumber::toString() const
 		prevUpper = current.interval.upper_bound;
 	}*/
 	std::string output;
-	output += polynomial.toString() + "\t";
+	output += polynomial.toString() + " @ ";
 	const double lower = static_cast<double>(interval.lower_bound);
 	output += std::to_string(lower);
 	output += " <= x <= ";

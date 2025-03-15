@@ -60,7 +60,7 @@ public:
     Rational inverse() const;
     double sqrt(int n=2) const;
     Rational gcd(const Rational& other) const;
-
+    std::vector<cpp_int> factorNumerator() const;
 private:
     cpp_int numerator;
     cpp_int denominator;

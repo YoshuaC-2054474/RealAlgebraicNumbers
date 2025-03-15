@@ -24,6 +24,12 @@ int main()
 		std::cout << "sqrt(a) = " << std::endl;
 		auto d = a.sqrt();
 		std::cout << d.toString() << std::endl;
+
+		/*auto a = RealAlgebraicNumber({ -2,0,1 }, { {14,10},{15,10} });
+		std::cout << a.toString() << std::endl;
+		std::cout << "a^2 = " << std::endl;
+		auto b = a.pow(2);
+		std::cout << b.toString() << std::endl;*/
 	}
 	catch (const std::exception& e)
 	{

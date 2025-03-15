@@ -121,6 +121,10 @@ Rational Rational::operator*(const Rational& other) const {
     return { num, den };
 }
 
+Rational operator*(const cpp_int& lsh, const Rational& other) {
+    return Rational(lsh) * other;
+}
+
 Rational Rational::operator/(const Rational& other) const {
     if (other.numerator == 0) throw std::invalid_argument("Division by zero");
     cpp_int num = numerator * other.denominator;
@@ -130,6 +134,14 @@ Rational Rational::operator/(const Rational& other) const {
 
 Rational operator/(const cpp_int& lsh, const Rational& other) {
     return Rational(lsh) / other;
+}
+
+Rational Rational::operator%(const Rational& other) const
+{
+	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
+	cpp_int num = numerator * other.denominator;
+	cpp_int den = denominator * other.numerator;
+	return { num % den, den };
 }
 
 // Assignment Operators
@@ -190,12 +202,12 @@ Rational Rational::inverse() const {
     return { denominator, numerator };
 }
 
-Rational Rational::sqrt(int n) const {
+double Rational::sqrt(const int n) const {
     if (n == 0) throw std::invalid_argument("Zeroth root is undefined");
     if (n % 2 == 0 && numerator < 0)
         throw std::invalid_argument("Even root of negative number");
-    double val = numerator.convert_to<double>() / denominator.convert_to<double>();
-    return { std::pow(val, 1.0 / n) };
+    const double val = numerator.convert_to<double>() / denominator.convert_to<double>();
+    return std::pow(val, 1.0 / n);
 }
 
 Rational Rational::gcd(const Rational& other) const {

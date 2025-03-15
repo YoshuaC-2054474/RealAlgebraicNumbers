@@ -144,7 +144,7 @@ Matrix createSylvesterMatrix(const std::vector<Polynomial>& f_sub, const Polynom
 RealAlgebraicNumber::RealAlgebraicNumber()
 	: polynomial({ 0 }), interval({ 0.0, 0.0 })
 {
-	//normalize();
+	this->polynomial.normalize();
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval)
@@ -155,6 +155,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Int
 	{
 		refine();
 	}
+	this->polynomial.normalize();
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Rational& lowerBound, const Rational& upperBound)
@@ -165,6 +166,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Rat
 	{
 		refine();
 	}
+	this->polynomial.normalize();
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound, const Rational& upperBound)
@@ -175,6 +177,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficien
 	{
 		refine();
 	}
+	this->polynomial.normalize();
 }
 
 void RealAlgebraicNumber::fromInteger(const int n)
@@ -182,6 +185,7 @@ void RealAlgebraicNumber::fromInteger(const int n)
 	this->polynomial = Polynomial({ 1, -n });
 	this->interval.lower_bound = n;
 	this->interval.upper_bound = n;
+	this->polynomial.normalize();
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator+(RealAlgebraicNumber& other)
@@ -189,6 +193,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+(RealAlgebraicNumber& other)
 	const std::vector<Polynomial> fXminY = poly_x_minus_y(this->polynomial);
 	const Matrix sylvester = createSylvesterMatrix(fXminY, other.polynomial);
 	Polynomial f3 = determinant(sylvester);
+	f3.normalize();
 
 	std::vector<Polynomial> sturm;
 	if (f3.sturm_sequence.empty()) {
@@ -254,14 +259,18 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*(RealAlgebraicNumber& other)
 	const std::vector<Polynomial> fXoverY = poly_x_over_y(this->polynomial);
 	const Matrix sylvester = createSylvesterMatrix(fXoverY, other.polynomial);
 	//printSylvester(sylvester);
-	//Polynomial f3 = determinant(sylvester);
-	std::vector<Rational> f3Coeff = determinant2(sylvester);
-	Polynomial f3 = {f3Coeff};
+	Polynomial f3 = determinant(sylvester);
+	/*std::vector<Rational> f3Coeff = determinant2(sylvester);
+	Polynomial f3 = {f3Coeff};*/
+	f3.normalize();
 
-	for (auto coef : f3.coefficients)
+	Polynomial test = { 0,-20,1 };
+	test.normalize();
+
+	/*for (auto coef : f3.coefficients)
 	{
 		std::cout << coef.toString() << " ";
-	}
+	}*/
 
 	std::vector<Polynomial> sturm;
 	if (f3.sturm_sequence.empty()) {

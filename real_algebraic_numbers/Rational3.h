@@ -36,11 +36,13 @@ public:
 
     Rational operator+(const Rational& other) const;
     Rational operator-(const Rational& other) const;
-    friend Rational operator-(const cpp_int lsh, const Rational& other);
+    friend Rational operator-(const cpp_int& lsh, const Rational& other);
     Rational operator-() const;
     Rational operator*(const Rational& other) const;
+    friend Rational operator*(const cpp_int& lsh, const Rational& other);
     Rational operator/(const Rational& other) const;
-    friend Rational operator/(const cpp_int lsh, const Rational& other);
+    friend Rational operator/(const cpp_int& lsh, const Rational& other);
+	Rational operator%(const Rational& other) const;
 
     Rational& operator+=(const Rational& other);
     Rational& operator-=(const Rational& other);
@@ -56,7 +58,7 @@ public:
 
     Rational abs() const;
     Rational inverse() const;
-    Rational sqrt(int n) const;
+    double sqrt(int n=2) const;
     Rational gcd(const Rational& other) const;
 
 private:

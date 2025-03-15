@@ -10,6 +10,7 @@ public:
     int degree;
     std::vector<Rational> coefficients;
     std::vector<Polynomial> sturm_sequence;
+    bool isNomalized = false;
 
 	Polynomial() : degree(-1), coefficients({}) {}
     Polynomial(const std::initializer_list<int> coeffs);

@@ -1,32 +1,64 @@
-# Prerequisites
-*.d
+# Build Outputs
+[Bb]in/
+[Oo]bj/
+**/[Dd]ebug/
+**/[Dd]ebugPublic/
+**/[Rr]elease/
+**/[Rr]eleases/
+**/[Xx]64/
+**/[Aa][Rr][Mm]/
+**/[Aa][Rr][Mm]64/
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# User Files
+*.user
+*.suo
+*.filters
+*.aps
+*.VC.db
+*.VC.VC.opendb
 
-# Precompiled Headers
-*.gch
+# IDE Generated
+.vs/
+*.sdf
+*.opensdf
+*.sln.docstates
+*.ide/
+ipch/
+*.tlog
+*.log
+*.ilk
+*.meta
 *.pch
+*.ipch
+*.iobj
+*.ipdb
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
+# Compiled Files
 *.exe
-*.out
-*.app
+*.dll
+*.lib
+*.exp
+*.pdb
+*.obj
+*.cache
+*.idb
+*.bsc
+
+# Dependencies
+packages/
+**/[Pp]ackages/*/
+*.nupkg
+.nuget/
+NuGet.exe
+
+# Misc
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+[Bb]uild[Ll]og.*
+*.stackdump
+
+# Optional: Test/Coverage
+*.gcda
+*.gcno

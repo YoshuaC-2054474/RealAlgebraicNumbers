@@ -13,7 +13,7 @@ int main()
 	auto b = RealAlgebraicNumber({ -3,1,3 }, { {8,10},{85,100} });*/
 	try
 	{
-		auto a = RealAlgebraicNumber({ -60,42,-128,256,-12,10 }, { {50,100},{1,1} });
+		/*auto a = RealAlgebraicNumber({ -60,42,-128,256,-12,10 }, { {50,100},{1,1} });
 		auto b = RealAlgebraicNumber({ -3,1,3 }, { {8,10},{85,100} });
 		auto c = a / b;
 		std::cout << a.toString() << std::endl;
@@ -23,13 +23,15 @@ int main()
 		std::cout << c.toString() << std::endl;
 		std::cout << "sqrt(a) = " << std::endl;
 		auto d = a.sqrt();
-		std::cout << d.toString() << std::endl;
+		std::cout << d.toString() << std::endl;*/
 
 		/*auto a = RealAlgebraicNumber({ -2,0,1 }, { {14,10},{15,10} });
 		std::cout << a.toString() << std::endl;
 		std::cout << "a^2 = " << std::endl;
 		auto b = a.pow(2);
 		std::cout << b.toString() << std::endl;*/
+
+		auto a = RealAlgebraicNumber({ -16,0,0,0,1 }, { {14,10},{15,10} });
 	}
 	catch (const std::exception& e)
 	{

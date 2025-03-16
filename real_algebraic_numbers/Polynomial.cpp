@@ -152,18 +152,22 @@ std::pair<Polynomial, Rational> syntheticDivision(const Polynomial& poly, Ration
 void factorPolynomial(const Polynomial& poly)
 {
     const std::vector<cpp_int> constantFactors = poly.coefficients[0].factorNumerator();
-    const std::vector<cpp_int> leadingFactors = poly.coefficients.back().factorNumerator();
+    //const std::vector<cpp_int> leadingFactors = poly.coefficients.back().factorNumerator();
     std::vector<Rational> rootOptions = {{0,1}};
     // options for root are all p/q for p the factors of the constant term and q the factors of the leading term
     for (const cpp_int& p : constantFactors) {
-        for (const cpp_int& q : leadingFactors) {
+        /*for (const cpp_int& q : leadingFactors) {
             if (q == 0) continue;
             rootOptions.push_back({ p, q });
-        }
+			rootOptions.push_back({ -p, q });
+        }*/
+        rootOptions.push_back({ p, 1 });
+        rootOptions.push_back({ -p, 1 });
     }
 
     bool hasFactored = false;
     for (const Rational& root : rootOptions) {
+		//std::cout << "Trying root: " << root.toString() << "\n";
         auto minimal = syntheticDivision(poly, root);
         if (minimal.second == 0) {
 			hasFactored = true;

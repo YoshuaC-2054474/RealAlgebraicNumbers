@@ -30,6 +30,9 @@ public:
     Polynomial& operator*=(const Polynomial& other) { *this = *this * other; return *this; }
     Polynomial operator-() const { return *this * Polynomial({-1}); }
 
+	bool operator==(const Polynomial& other) const;
+	bool operator!=(const Polynomial& other) const { return !(*this == other); }
+
     std::string toString() const;
     void print() const;
 

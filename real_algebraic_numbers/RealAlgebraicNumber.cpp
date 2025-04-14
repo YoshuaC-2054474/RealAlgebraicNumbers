@@ -144,7 +144,7 @@ Matrix createSylvesterMatrix(const std::vector<Polynomial>& f_sub, const Polynom
 RealAlgebraicNumber::RealAlgebraicNumber()
 	: polynomial({ 0 }), interval({ 0.0, 0.0 })
 {
-	this->polynomial.normalize();
+	//this->polynomial.normalize();
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval)
@@ -180,12 +180,13 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficien
 	this->polynomial.normalize();
 }
 
-void RealAlgebraicNumber::fromInteger(const int n)
+RealAlgebraicNumber RealAlgebraicNumber::fromInteger(const int n)
 {
-	this->polynomial = Polynomial({ 1, -n });
-	this->interval.lower_bound = n;
-	this->interval.upper_bound = n;
+	this->polynomial = Polynomial({ -n, 1 });
+	this->interval.lower_bound = n-0.01;
+	this->interval.upper_bound = n+0.01;
 	this->polynomial.normalize();
+	return *this;
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator+(RealAlgebraicNumber& other)
@@ -336,10 +337,94 @@ RealAlgebraicNumber RealAlgebraicNumber::inverse() const
 	return { inverseCo, inverseLower, inverseUpper };
 }
 
-//bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const
-//{
-//	
-//}
+bool RealAlgebraicNumber::operator==(RealAlgebraicNumber& other)
+{
+	// make both polynomials minimal
+	// if minimal polynomials are not equal, return false
+	// if minimal polynomials are equal, check if intervals overlap
+	//
+	if (this->polynomial != other.polynomial)
+	{
+		return false;
+	}
+	
+	for (int i = 0; i < 50; i ++)
+	{
+		if (this->interval.lower_bound == other.interval.lower_bound && this->interval.upper_bound == other.interval.upper_bound)
+		{
+			std::cout << "Equal after " << i << std::endl;
+			return true;
+		}
+
+		if (this->interval.lower_bound > other.interval.upper_bound || this->interval.upper_bound < other.interval.lower_bound)
+		{
+			return false;
+		}
+		this->refine();
+		other.refine();
+	}
+	std::cout << "Equal after 50" << std::endl;
+	return true;
+}
+
+bool RealAlgebraicNumber::operator!=(RealAlgebraicNumber& other)
+{
+	return !(*this == other);
+}
+
+bool RealAlgebraicNumber::operator<(RealAlgebraicNumber& other)
+{
+	if (*this == other)
+	{
+		return false;
+	}
+
+	while (true)
+	{
+		if (this->interval.upper_bound < other.interval.lower_bound)
+		{
+			return true;
+		}
+		if (this->interval.lower_bound > other.interval.upper_bound)
+		{
+			return false;
+		}
+		this->refine();
+		other.refine();
+	}
+}
+
+bool RealAlgebraicNumber::operator>(RealAlgebraicNumber& other)
+{
+	if (*this == other)
+	{
+		return false;
+	}
+
+	while (true)
+	{
+		if (this->interval.lower_bound > other.interval.upper_bound)
+		{
+			return true;
+		}
+		if (this->interval.upper_bound < other.interval.lower_bound)
+		{
+			return false;
+		}
+		this->refine();
+		other.refine();
+	}
+}
+
+bool RealAlgebraicNumber::operator<=(RealAlgebraicNumber& other)
+{
+	return !(*this > other);
+}
+
+bool RealAlgebraicNumber::operator>=(RealAlgebraicNumber& other)
+{
+	return !(*this < other);
+}
 
 RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n)
 {

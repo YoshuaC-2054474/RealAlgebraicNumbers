@@ -31,7 +31,23 @@ int main()
 		auto b = a.pow(2);
 		std::cout << b.toString() << std::endl;*/
 
-		auto a = RealAlgebraicNumber({ -16,0,0,0,1 }, { {14,10},{15,10} });
+		//auto a = RealAlgebraicNumber({ -16,0,0,0,1 }, { {14,10},{15,10} });
+
+		auto a = RealAlgebraicNumber({ -16,1,2 }, { {258,100},{300,100} });
+		/*auto b = RealAlgebraicNumber({ -16,1,2 }, { {230,100},{259,100} });
+		bool eq = a == b;
+		std::cout << a.toString() << std::endl;
+		std::cout << b.toString() << std::endl;
+		std::cout << a.interval.lower_bound.toString() << " " << a.interval.upper_bound.toString() << std::endl;
+		std::cout << b.interval.lower_bound.toString() << " " << b.interval.upper_bound.toString() << std::endl;
+		std::cout << "a == b = " << eq << std::endl;
+		auto c = RealAlgebraicNumber().fromInteger(2);
+		std::cout << "a + c = " << (a+c).toString() << std::endl;*/
+		auto d = a.sqrt();
+		std::cout << "sqrt(a) = " << d.toString() << std::endl;
+		auto e = d.pow(2);
+		std::cout << "sqrt(a)^2 = " << e.toString() << std::endl;
+		std::cout << "a == e = " << (a == e) << std::endl;	
 	}
 	catch (const std::exception& e)
 	{

@@ -28,7 +28,7 @@ public:
 	//RealAlgebraicNumber(const std::vector<int>& coefficients, const Interval& interval);
 	RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound, const Rational& upperBound);
 
-	void fromInteger(const int n);
+	RealAlgebraicNumber fromInteger(const int n);
 
 	//void fromRational(const int p, int q)
 	//{
@@ -63,12 +63,12 @@ public:
 	RealAlgebraicNumber operator-() const;
 	RealAlgebraicNumber inverse() const;
 
-	bool operator==(const RealAlgebraicNumber& other) const;
-	bool operator!=(const RealAlgebraicNumber& other) const;
-	bool operator<(const RealAlgebraicNumber& other) const;
-	bool operator>(const RealAlgebraicNumber& other) const;
-	bool operator<=(const RealAlgebraicNumber& other) const;
-	bool operator>=(const RealAlgebraicNumber& other) const;
+	bool operator==(RealAlgebraicNumber& other);
+	bool operator!=(RealAlgebraicNumber& other);
+	bool operator<(RealAlgebraicNumber& other);
+	bool operator>(RealAlgebraicNumber& other);
+	bool operator<=(RealAlgebraicNumber& other);
+	bool operator>=(RealAlgebraicNumber& other);
 
 	RealAlgebraicNumber abs() const;
 	RealAlgebraicNumber sqrt(int n=2);

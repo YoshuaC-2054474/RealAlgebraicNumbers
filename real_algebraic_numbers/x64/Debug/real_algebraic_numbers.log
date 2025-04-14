@@ -1,9 +1,12 @@
-﻿  RealAlgebraicNumber.cpp
-C:\Users\yoshu\Desktop\bachelorproef\RealAlgebraicNumbers\real_algebraic_numbers\RealAlgebraicNumber.cpp(10,24): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\yoshu\Desktop\bachelorproef\RealAlgebraicNumbers\real_algebraic_numbers\RealAlgebraicNumber.cpp(10,14): warning C4267: 'initializing': conversion from 'size_t' to 'const int', possible loss of data
-C:\Users\yoshu\Desktop\bachelorproef\RealAlgebraicNumbers\real_algebraic_numbers\RealAlgebraicNumber.cpp(30,24): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\yoshu\Desktop\bachelorproef\RealAlgebraicNumbers\real_algebraic_numbers\RealAlgebraicNumber.cpp(30,14): warning C4267: 'initializing': conversion from 'size_t' to 'const int', possible loss of data
-C:\Users\yoshu\Desktop\bachelorproef\RealAlgebraicNumbers\real_algebraic_numbers\RealAlgebraicNumber.cpp(110,29): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\yoshu\Desktop\bachelorproef\RealAlgebraicNumbers\real_algebraic_numbers\RealAlgebraicNumber.cpp(110,14): warning C4267: 'initializing': conversion from 'size_t' to 'const int', possible loss of data
-C:\Users\yoshu\Desktop\bachelorproef\RealAlgebraicNumbers\real_algebraic_numbers\RealAlgebraicNumber.cpp(438,13): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-  real_algebraic_numbers.vcxproj -> C:\Users\yoshu\Desktop\bachelorproef\RealAlgebraicNumbers\x64\Debug\real_algebraic_numbers.exe
+﻿  Polynomial.cpp
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(13,32): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(24,29): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(131,16): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(192,29): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(264,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(282,16): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(313,46): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(333,43): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(333,24): warning C4267: 'initializing': conversion from 'size_t' to 'const int', possible loss of data
+C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\real_algebraic_numbers\Polynomial.cpp(369,16): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  real_algebraic_numbers.vcxproj -> C:\Users\yoshu\Desktop\UHasselt\Bapr\RealAlgebraicNumbers\x64\Debug\real_algebraic_numbers.exe

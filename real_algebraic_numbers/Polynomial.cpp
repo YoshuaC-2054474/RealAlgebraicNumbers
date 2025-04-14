@@ -219,9 +219,9 @@ void Polynomial::normalize()
 	}
 	std::cout << "\n\n";*/
 
-    std::cout << "\n\nMinimal Polynomials of " << toString() << "\n";
-	factorPolynomial(*this);
-    std::cout << "\n\n";
+ //   std::cout << "\n\nMinimal Polynomials of " << toString() << "\n";
+	////factorPolynomial(*this);
+ //   std::cout << "\n\n";
 
 	isNomalized = true;
 }
@@ -263,6 +263,17 @@ Polynomial Polynomial::operator*(const Polynomial& other) const {
 
     result.degree = result.coefficients.size() - 1;
     return result;
+}
+
+bool Polynomial::operator==(const Polynomial& other) const
+{
+	if (degree != other.degree) return false;
+
+	for (int i = 0; i < coefficients.size(); i++)
+	{
+		if (coefficients[i] != other.coefficients[i]) return false;
+	}
+	return true;
 }
 
 std::string Polynomial::toString() const {

@@ -243,3 +243,8 @@ std::vector<cpp_int> Rational::factorNumerator() const
 	}
 	return factors;
 }
+
+bool Rational::isInteger() const
+{
+	return denominator == 1;
+}

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+
 class Polynomial {
 public:
     int degree;
@@ -16,7 +17,8 @@ public:
     Polynomial(const std::initializer_list<int> coeffs);
     Polynomial(const std::vector<Rational>& coeffs);
 
-    void normalize();
+    std::vector<Polynomial> normalize();
+    void testNormalize();
 
     // Check if the polynomial is zero
     bool isZero() const;

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <numeric>
 #include <boost/multiprecision/cpp_int.hpp>
+//#include <fmpz_poly.h>
+//#include <fmpz_poly_factor.h>
 
 Polynomial::Polynomial(const std::initializer_list<int> coeffs)
 {
@@ -42,156 +44,346 @@ Rational findGCD(const std::vector<Rational>& arr) {
     return res;
 }
 
-// Make a polynomial monic by dividing by its leading coefficient
-//Polynomial make_monic(const Polynomial& poly) {
-//    if (poly.coefficients.empty()) return {};
-//    const Rational lc = poly.coefficients.back();
-//	//std::cout << lc.toString() << "\n";
-//    std::vector<Rational> monic;
-//    for (const Rational& coeff : poly.coefficients) {
-//        monic.push_back(coeff / lc);
-//		//std::cout << coeff.toString() << " / " << lc.toString() << " = " << (coeff / lc).toString() << "\n";
-//    }
-//    return monic;
-//}
-
-// Check if a quadratic polynomial factors over integers
-//bool is_reducible_quadratic(const Polynomial& poly) {
-//    if (poly.coefficients.size() != 3) return false;
-//    Rational a = poly.coefficients[2];
-//    Rational b = poly.coefficients[1];
-//    Rational c = poly.coefficients[0];
-//    Rational discriminant = b * b - 4 * a * c;
-//    if (discriminant < 0) return false;
-//    Rational sqrtDisc = static_cast<int>(discriminant.sqrt());
-//    return (sqrtDisc * sqrtDisc == discriminant);
-//}
-
-// Factor a reducible quadratic polynomial into linear terms
-//std::vector<Polynomial> factor_quadratic(const Polynomial& poly) {
-//    if (!is_reducible_quadratic(poly)) return { poly };
-//    Rational a = poly.coefficients[2];
-//    Rational b = poly.coefficients[1];
-//    Rational c = poly.coefficients[0];
-//    Rational discriminant = b * b - 4 * a * c;
-//    int sqrtDisc = static_cast<int>(discriminant.sqrt());
-//
-//    std::vector<Polynomial> factors;
-//    // Check possible rational roots p/q where p divides c and q divides a
-//    for (Rational p : {1, -1}) {
-//        for (Rational q : {1, -1}) {
-//            if (c % p != 0 || a % q != 0) continue;
-//            Rational num = p * (c / p);
-//            Rational den = q * (a / q);
-//            if (den == 0) continue;
-//            if ((num * 2 * den) == (-b + sqrtDisc) * den ||
-//                (num * 2 * den) == (-b - sqrtDisc) * den) {
-//                Rational root = num / den;
-//                Polynomial factor({ -root, 1 });
-//                factors.push_back(factor);
-//            }
-//        }
-//    }
-//    if (factors.size() == 2) return factors;
-//    return { poly };
-//}
-
-// Main function to get minimal polynomials
-//std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
-//    std::vector<Polynomial> result;
-//    if (poly.coefficients.size() <= 1) return result;
-//
-//    Rational content = findGCD(poly.coefficients);
-//    std::vector<Rational> primitive;
-//    for (const Rational& coeff : poly.coefficients) {
-//        primitive.push_back(coeff / content);
-//    }
-//
-//    if (primitive.size() == 2) { // Linear
-//        result.push_back(make_monic(primitive));
-//    }
-//    else if (primitive.size() == 3) { // Quadratic
-//        auto factors = factor_quadratic(primitive);
-//        for (const auto& factor : factors) {
-//            result.push_back(make_monic(factor));
-//        }
-//    }
-//    else { // Higher degree (assumed irreducible for simplicity)
-//        result.push_back(make_monic(primitive));
-//    }
-//
-//    return result;
-//}
-
-// Evaluate polynomial using Horner's method
-Rational evaluate(const Polynomial& poly, Rational x) {
-    // Start with the coefficient of the highest degree term.
-    Rational result = poly.coefficients.back();
-    // Iterate backwards through the vector.
-    for (int i = poly.coefficients.size() - 2; i >= 0; i--) {
-        result = result * x + poly.coefficients[i];
+bool isPerfectCube(const int n) {
+    if (n == 0) {
+        return true; 
     }
-    return result;
+    const int abs_n = abs(n);
+    int low = 1, high = abs_n;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        int cube = mid * mid * mid;
+        if (cube == abs_n) {
+            mid = (n < 0) ? -mid : mid;
+            return (mid * mid * mid == n);
+        }
+        else if (cube < abs_n) {
+            low = mid + 1;
+        }
+        else {
+            high = mid - 1;
+        }
+    }
+    return false;
 }
 
-// Synthetic division: divides poly by (x - r) and returns quotient coefficients.
-std::pair<Polynomial, Rational> syntheticDivision(const Polynomial& poly, Rational r) {
-    int n = poly.degree; // Degree of the polynomial.
-    std::vector<Rational> quotient(n, 0);
-    // Set the highest coefficient for the quotient.
-    quotient[n - 1] = poly.coefficients.back();
-    // Iterate backwards to compute the quotient coefficients.
-    for (int i = n - 1; i > 0; i--) {
-        quotient[i - 1] = poly.coefficients[i] + r * quotient[i];
-    }
-    // Compute the remainder.
-    Rational remainder = poly.coefficients[0] + r * quotient[0];
-    return { quotient, remainder };
-}
+// Helper to calculate integer roots via Rational Root Theorem
+std::vector<int> getPossibleRoots(const std::vector<Rational>& poly) {
+    std::vector<int> roots;
+    if (poly.empty()) return roots;
 
-void factorPolynomial(const Polynomial& poly)
-{
-    const std::vector<cpp_int> constantFactors = poly.coefficients[0].factorNumerator();
-    //const std::vector<cpp_int> leadingFactors = poly.coefficients.back().factorNumerator();
-    std::vector<Rational> rootOptions = {{0,1}};
-    // options for root are all p/q for p the factors of the constant term and q the factors of the leading term
-    for (const cpp_int& p : constantFactors) {
-        /*for (const cpp_int& q : leadingFactors) {
-            if (q == 0) continue;
-            rootOptions.push_back({ p, q });
-			rootOptions.push_back({ -p, q });
-        }*/
-        rootOptions.push_back({ p, 1 });
-        rootOptions.push_back({ -p, 1 });
-    }
+    const int constant = poly[0].toInts();
+    const int leading = poly.back().toInts();
 
-    bool hasFactored = false;
-    for (const Rational& root : rootOptions) {
-		//std::cout << "Trying root: " << root.toString() << "\n";
-        auto minimal = syntheticDivision(poly, root);
-        if (minimal.second == 0) {
-			hasFactored = true;
-            std::cout << "(x - " << root.toString() << ") ";
+    std::vector<int> constant_factors, leading_factors;
 
-            factorPolynomial(minimal.first);
+    // Generate factors of constant term (include negatives)
+    for (int i = 1; i <= abs(constant); ++i) {
+        if (constant % i == 0) {
+            constant_factors.push_back(i);
+            constant_factors.push_back(-i);
         }
     }
 
-	if (!hasFactored) {
-		std::cout << "(" << poly.toString() << ")";
-	}
+    // Generate factors of leading coefficient (include negatives)
+    for (int i = 1; i <= abs(leading); ++i) {
+        if (leading % i == 0) {
+            leading_factors.push_back(i);
+            leading_factors.push_back(-i);
+        }
+    }
+
+    // Generate possible roots (p/q)
+    for (int p : constant_factors) {
+        for (int q : leading_factors) {
+            if (q != 0 && p % q == 0) {
+                int root = p / q;
+                if (find(roots.begin(), roots.end(), root) == roots.end()) {
+                    roots.push_back(root);
+                }
+            }
+        }
+    }
+    return roots;
 }
 
-void Polynomial::normalize()
+// Helper to perform synthetic division
+std::vector<Rational> syntheticDivide(const std::vector<Rational>& poly, int root) {
+    std::vector<Rational> quotient;
+    if (poly.empty()) return quotient;
+
+    quotient.resize(poly.size() - 1);
+    Rational carry = 0;
+
+    for (int i = poly.size() - 1; i > 0; --i) {
+        quotient[i - 1] = poly[i] + carry;
+        carry = quotient[i - 1] * root;
+    }
+
+    // Check if remainder is zero
+    if (poly[0] + carry != 0) {
+        return {}; // Not a valid root
+    }
+
+    return quotient;
+}
+
+// Main function to get minimal polynomials
+std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
+    std::vector<Polynomial> result;
+    //if (poly.coefficients.size() <= 1) return result;
+
+	// find lowest non-zero coefficient
+    int lowestNz = 0;
+	for (int i = 0; i < poly.coefficients.size(); i++) {
+		if (poly.coefficients[i] != 0) {
+			lowestNz = i;
+			break;
+		}
+	}
+
+    std::vector<std::pair<Rational, int>> non_zero_terms;
+    for (int exponent = 0; exponent < poly.coefficients.size(); ++exponent) {
+        Rational coeff = poly.coefficients[exponent];
+        if (coeff != 0) {
+            non_zero_terms.emplace_back(coeff, exponent);
+        }
+    }
+
+	if (lowestNz > 0) {
+        std::vector<Rational> lCoeffs;
+        for (size_t i = 0; i < lowestNz; i++)
+        {
+			lCoeffs.push_back(0);
+        }
+		lCoeffs.push_back(1);
+        result.push_back(lCoeffs);
+
+		std::vector<Rational> newCoeffs;
+        for (int i = lowestNz; i < poly.coefficients.size(); i++) {
+			newCoeffs.push_back(poly.coefficients[i]);
+		}
+		Polynomial newPoly(newCoeffs);
+
+        std::cout << poly.toString() << " -> (" << result[0].toString() << ") (" << newPoly.toString() << ")\n";
+		//result.extend(get_minimal_polynomials(newPoly));
+		std::vector<Polynomial> subMinimals = get_minimal_polynomials(newPoly);
+        result.reserve(result.size() + distance(subMinimals.begin(), subMinimals.end()));
+        result.insert(result.end(), subMinimals.begin(), subMinimals.end());
+	}
+	else if (non_zero_terms.size() == 2) {
+		// Check if both exponents are even (check difference of squares)
+        if (non_zero_terms[0].second % 2 == 0 && non_zero_terms[1].second % 2 == 0) {
+            // Check if the terms have opposite signs
+            if ((non_zero_terms[0].first > 0) != (non_zero_terms[1].first > 0)) {
+                // Check if absolute values of coefficients are perfect squares
+                Rational abs_coeff1 = non_zero_terms[0].first.abs();
+                Rational abs_coeff2 = non_zero_terms[1].first.abs();
+
+				Rational sqrt_coeff1 = abs_coeff1.sqrt();
+                bool coeff1_isSquare = sqrt_coeff1.isInteger();
+
+				Rational sqrt_coeff2 = abs_coeff2.sqrt();
+				bool coeff2_isSquare = sqrt_coeff2.isInteger();
+
+				if (coeff1_isSquare && coeff2_isSquare) {
+					// Create the difference of squares polynomial
+					int halvedExponent1 = non_zero_terms[0].second / 2;
+					int halvedExponent2 = non_zero_terms[1].second / 2;
+					std::vector<Rational> diff_of_squares_coeffs1;
+					diff_of_squares_coeffs1.resize(std::max(halvedExponent1, halvedExponent2) + 1, 0);
+					diff_of_squares_coeffs1[halvedExponent1] = sqrt_coeff1;
+					diff_of_squares_coeffs1[halvedExponent2] = sqrt_coeff2;
+                    std::vector<Rational> diff_of_squares_coeffs2;
+                    diff_of_squares_coeffs2.resize(std::max(halvedExponent1, halvedExponent2) + 1, 0);
+                    diff_of_squares_coeffs2[halvedExponent1] = -sqrt_coeff1;
+                    diff_of_squares_coeffs2[halvedExponent2] = sqrt_coeff2;
+
+					Polynomial newPoly1(diff_of_squares_coeffs1);
+					Polynomial newPoly2(diff_of_squares_coeffs2);
+                    std::cout << poly.toString() << " -> (" << newPoly1.toString() << ") (" << newPoly2.toString() << ")\n";
+
+                    std::vector<Polynomial> subMinimals1 = get_minimal_polynomials(newPoly1);
+                    result.reserve(result.size() + distance(subMinimals1.begin(), subMinimals1.end()));
+                    result.insert(result.end(), subMinimals1.begin(), subMinimals1.end());
+
+                    std::vector<Polynomial> subMinimals2 = get_minimal_polynomials(newPoly2);
+                    result.reserve(result.size() + distance(subMinimals2.begin(), subMinimals2.end()));
+                    result.insert(result.end(), subMinimals2.begin(), subMinimals2.end());
+				}
+            }
+        }
+    	// Check if both exponents are divisible by 3 (check sum/difference of cubes)
+    	else if (non_zero_terms[0].second % 3 == 0 && non_zero_terms[1].second % 3 == 0) {
+            if (non_zero_terms[0].first.isInteger() && non_zero_terms[1].first.isInteger())
+            {
+				int coeff1 = non_zero_terms[0].first.toInts();
+				int coeff2 = non_zero_terms[1].first.toInts();
+				if (isPerfectCube(coeff1) && isPerfectCube(coeff2))
+				{
+					// Create the sum/difference of cubes polynomial
+					int halvedExponent1 = non_zero_terms[0].second / 3;
+					int halvedExponent2 = non_zero_terms[1].second / 3;
+                    int b = static_cast<int>(std::cbrt(abs(coeff1)));
+                    int a = static_cast<int>(std::cbrt(abs(coeff2)));
+					b = (coeff1 < 0) ? -b : b;
+					a = (coeff2 < 0) ? -a : a;
+
+					std::vector<Rational> sum_of_cubes_coeffs1;
+					sum_of_cubes_coeffs1.resize(std::max(halvedExponent1, halvedExponent2) + 1, 0);
+					sum_of_cubes_coeffs1[halvedExponent1] = b;
+					sum_of_cubes_coeffs1[halvedExponent2] = a;
+
+					std::vector<Rational> sum_of_cubes_coeffs2;
+					sum_of_cubes_coeffs2.resize(std::max(halvedExponent1*2, halvedExponent2*2) + 1, 0);
+					sum_of_cubes_coeffs2[halvedExponent1*2] = std::pow(b, 2);
+					sum_of_cubes_coeffs2[halvedExponent2*2] = std::pow(a, 2);
+					int middleTerm = coeff1 < 0 ? a * b : -a * b;
+					sum_of_cubes_coeffs2[halvedExponent1+halvedExponent2] = -a*b;
+
+					Polynomial newPoly1(sum_of_cubes_coeffs1);
+					Polynomial newPoly2(sum_of_cubes_coeffs2);
+                    std::cout << poly.toString() << " -> (" << newPoly1.toString() << ") (" << newPoly2.toString() << ")\n";
+
+					std::vector<Polynomial> subMinimals1 = get_minimal_polynomials(newPoly1);
+					result.reserve(result.size() + distance(subMinimals1.begin(), subMinimals1.end()));
+					result.insert(result.end(), subMinimals1.begin(), subMinimals1.end());
+
+					std::vector<Polynomial> subMinimals2 = get_minimal_polynomials(newPoly2);
+					result.reserve(result.size() + distance(subMinimals2.begin(), subMinimals2.end()));
+					result.insert(result.end(), subMinimals2.begin(), subMinimals2.end());
+
+				}
+            }
+        }
+    }
+    else if (non_zero_terms.size() == 3 && poly.degree == 2) {
+        Rational c = poly.coefficients[0];
+        Rational b = poly.coefficients[1];
+        Rational a = poly.coefficients[2];
+
+        // Function to generate all divisors of x, including negatives
+        auto getDivisors = [](const Rational& x) {
+            std::vector<int> divisors;
+            if (x == 0) return divisors;
+            const int abs_x = abs(x.toInts());
+            for (int i = 1; i <= abs_x; ++i) {
+                if (abs_x % i == 0) {
+                    divisors.push_back(i);
+                    divisors.push_back(-i);
+                }
+            }
+            return divisors;
+        };
+
+        std::vector<int> divisors_a = getDivisors(a);
+        std::vector<int> divisors_c = getDivisors(c);
+
+        bool factorFound = false;
+
+        // Iterate all possible pairs (m from divisors of a, n from divisors of c)
+   //     for (int m : divisors_a) {
+			//if (factorFound) break; // Stop if a factor has already been found
+
+   //         if (m == 0) continue;
+   //         Rational p = a / m; // m * p must equal a
+
+   //         for (int n : divisors_c) {
+   //             if (factorFound) break; // Stop if a factor has already been found
+
+   //             if (n == 0) continue;
+   //             Rational q = c / n; // n * q must equal c
+
+   //             // Check if the combination satisfies mq + np = b
+   //             if (m * q + n * p == b) {
+   //                 // Construct the factors (mx + n) and (px + q)
+   //                 std::vector<Rational> factor1 = { n, m }; // Represents mx + n
+   //                 std::vector<Rational> factor2 = { q, p }; // Represents px + q
+
+			//		Polynomial newPoly1(factor1);
+			//		Polynomial newPoly2(factor2);
+
+			//		std::cout << poly.toString() << " -> (" << newPoly1.toString() << ") (" << newPoly2.toString() << ")\n";
+
+   //                 std::vector<Polynomial> subMinimals1 = get_minimal_polynomials(newPoly1);
+   //                 result.reserve(result.size() + distance(subMinimals1.begin(), subMinimals1.end()));
+   //                 result.insert(result.end(), subMinimals1.begin(), subMinimals1.end());
+
+   //                 std::vector<Polynomial> subMinimals2 = get_minimal_polynomials(newPoly2);
+   //                 result.reserve(result.size() + distance(subMinimals2.begin(), subMinimals2.end()));
+   //                 result.insert(result.end(), subMinimals2.begin(), subMinimals2.end());
+
+   //             	factorFound = true;
+   //             }
+   //         }
+   //     }
+        for (int p : divisors_c) {
+            if (p == 0) continue;
+            for (int q : divisors_a) {
+                if (q == 0) continue;
+                // Check if a*p² + b*p*q + c*q² == 0
+                if (a * p * p + b * p * q + c * q * q == 0) {
+                    Rational k = a / q;
+                    Rational m = -c / p;
+
+                    Polynomial newPoly1({ -p, q });
+                    Polynomial newPoly2({ m, k });
+
+                    std::cout << poly.toString() << " -> (" << newPoly1.toString() << ") (" << newPoly2.toString() << ")\n";
+
+                    std::vector<Polynomial> subMinimals1 = get_minimal_polynomials(newPoly1);
+                    result.reserve(result.size() + distance(subMinimals1.begin(), subMinimals1.end()));
+                    result.insert(result.end(), subMinimals1.begin(), subMinimals1.end());
+
+                    std::vector<Polynomial> subMinimals2 = get_minimal_polynomials(newPoly2);
+                    result.reserve(result.size() + distance(subMinimals2.begin(), subMinimals2.end()));
+                    result.insert(result.end(), subMinimals2.begin(), subMinimals2.end());
+                    factorFound = true;
+                }
+            }
+        }
+    }
+    else if (non_zero_terms.size() >= 3 /*&& poly.coefficients.size() < 4*/)
+    {
+        std::vector<int> possible_roots = getPossibleRoots(poly.coefficients);
+        for (int root : possible_roots) {
+            std::vector<Rational> quotient = syntheticDivide(poly.coefficients, root);
+            if (!quotient.empty()) {
+                Polynomial newPoly1({ -root, 1 }); // Factor (x - root)
+				Polynomial newPoly2(quotient); // Quotient polynomial
+
+                std::cout << poly.toString() << " -> (" << newPoly1.toString() << ") (" << newPoly2.toString() << ")\n";
+
+                std::vector<Polynomial> subMinimals1 = get_minimal_polynomials(newPoly1);
+                result.reserve(result.size() + distance(subMinimals1.begin(), subMinimals1.end()));
+                result.insert(result.end(), subMinimals1.begin(), subMinimals1.end());
+
+                std::vector<Polynomial> subMinimals2 = get_minimal_polynomials(newPoly2);
+                result.reserve(result.size() + distance(subMinimals2.begin(), subMinimals2.end()));
+                result.insert(result.end(), subMinimals2.begin(), subMinimals2.end());
+                break;
+            }
+        }
+    }
+
+	if (result.empty()) {
+		// If no factors found, return the polynomial itself.
+		result.push_back(poly);
+	}
+
+    return result;
+}
+
+std::vector<Polynomial> Polynomial::normalize()
 {
-	if (isNomalized) return;
+	if (isNomalized) return {};
 
 	while (coefficients.size() > 1 && coefficients.back() == 0) {
 		coefficients.pop_back();
 	}
 	degree = coefficients.empty() ? -1 : coefficients.size() - 1;
 
-	if (coefficients.empty()) return;
+	if (coefficients.empty()) return {};
 
     const Rational gcd = findGCD(coefficients);
 	int gcdInt = gcd.toInts();
@@ -202,28 +394,138 @@ void Polynomial::normalize()
         }
     }
 
-    const Rational highestCo = coefficients.back();
-    int highestCoInt = highestCo.toInts();
-    //std::cout << "\n";
-    if (highestCo != 0)
-    {
-        for (int i = 0; i < coefficients.size(); i++) {
-            coefficients[i] /= highestCo;
-        }
-    }
+    /*fmpz_poly_t f;
+    fmpz_poly_init(f);
 
-	/*std::vector<Polynomial> minimalPolys = get_minimal_polynomials(*this);
+    for (int i = 0; i < coefficients.size(); i++)
+    {
+		fmpz_poly_set_coeff_si(f, i, coefficients[i].toInts());
+    }
+	std::cout << "\n\nNormalized Polynomial: " << toString() << "\n";
+    fmpz_poly_print(f);*/
+
+    //const Rational highestCo = coefficients.back();
+    //int highestCoInt = highestCo.toInts();
+    ////std::cout << "\n";
+    //if (highestCo != 0)
+    //{
+    //    for (int i = 0; i < coefficients.size(); i++) {
+    //        coefficients[i] /= highestCo;
+    //    }
+    //}
+
+	std::vector<Polynomial> minimalPolys = get_minimal_polynomials(*this);
 	std::cout << "\n\nMinimal Polynomials of " << toString() << "\n";
 	for (const Polynomial& poly : minimalPolys) {
 		std::cout << "\t" << poly.toString() << '\n';
 	}
-	std::cout << "\n\n";*/
-
- //   std::cout << "\n\nMinimal Polynomials of " << toString() << "\n";
-	////factorPolynomial(*this);
- //   std::cout << "\n\n";
+	std::cout << "\n\n";
 
 	isNomalized = true;
+    return minimalPolys;
+}
+
+void Polynomial::testNormalize()
+{
+	Polynomial p1({ -4,0,1 });
+	std::vector<Polynomial> n1 = p1.normalize();
+    if (std::find(n1.begin(), n1.end(), Polynomial({2,1})) == n1.end()
+        || std::find(n1.begin(), n1.end(), Polynomial({ -2,1 })) == n1.end())
+    {
+	    std::cout << "!!!!!!!!!!!!!! Test 1 not passed !!!!!!!!!!!!!!\n";
+    }
+
+    Polynomial p2({ -16,0,0,0,9 });
+    std::vector<Polynomial> n2 = p2.normalize();
+    if (std::find(n2.begin(), n2.end(), Polynomial({ 4,0,3 })) == n2.end()
+        || std::find(n2.begin(), n2.end(), Polynomial({ -4,0,3 })) == n2.end())
+    {
+        std::cout << "!!!!!!!!!!!!!! Test 2 not passed !!!!!!!!!!!!!!\n";
+    }
+
+	Polynomial p3({ 8,0,0,1 });
+	std::vector<Polynomial> n3 = p3.normalize();
+	if (std::find(n3.begin(), n3.end(), Polynomial({2,1})) == n3.end()
+        || std::find(n3.begin(), n3.end(), Polynomial({ 4,-2,1 })) == n3.end())
+	{
+		std::cout << "!!!!!!!!!!!!!! Test 3 not passed !!!!!!!!!!!!!!\n";
+	}
+
+	Polynomial p4({ -1,0,0,27 });
+	std::vector<Polynomial> n4 = p4.normalize();
+	if (std::find(n4.begin(), n4.end(), Polynomial({ -1,3 })) == n4.end()
+        || std::find(n4.begin(), n4.end(), Polynomial({ 1,3,9 })) == n4.end())
+	{
+		std::cout << "!!!!!!!!!!!!!! Test 4 not passed !!!!!!!!!!!!!!\n";
+	}
+
+	Polynomial p5({ 6,5,1 });
+	std::vector<Polynomial> n5 = p5.normalize();
+    if (std::find(n5.begin(), n5.end(), Polynomial({ 2,1 })) == n5.end()
+        || std::find(n5.begin(), n5.end(), Polynomial({ 3,1 })) == n5.end())
+    {
+        std::cout << "!!!!!!!!!!!!!! Test 5 not passed !!!!!!!!!!!!!!\n";
+    }
+
+	Polynomial p6({ 3,-7,2 });
+	std::vector<Polynomial> n6 = p6.normalize();
+	if (std::find(n6.begin(), n6.end(), Polynomial({-1,2})) == n6.end()
+        || std::find(n6.begin(), n6.end(), Polynomial({ -3,1 })) == n6.end())
+	{
+		std::cout << "!!!!!!!!!!!!!! Test 6 not passed !!!!!!!!!!!!!!\n";
+	}
+
+	Polynomial p7({ -6,-1,1 });
+	std::vector<Polynomial> n7 = p7.normalize();
+	if (std::find(n7.begin(), n7.end(), Polynomial({ 2,1 })) == n7.end()
+        || std::find(n7.begin(), n7.end(), Polynomial({ -3,1 })) == n7.end())
+	{
+		std::cout << "!!!!!!!!!!!!!! Test 7 not passed !!!!!!!!!!!!!!\n";
+
+	}
+
+	Polynomial p8({ 4,0,-3,1 });
+	std::vector<Polynomial> n8 = p8.normalize();
+	if (std::find(n8.begin(), n8.end(), Polynomial({ 1,1 })) == n8.end()
+        || std::find(n8.begin(), n8.end(), Polynomial({ -2,1 })) == n8.end())
+	{
+		std::cout << "!!!!!!!!!!!!!! Test 8 not passed !!!!!!!!!!!!!!\n";
+	}
+
+	Polynomial p9({ 4,0,-5,0,1 });
+	std::vector<Polynomial> n9 = p9.normalize();
+	if (std::find(n9.begin(), n9.end(), Polynomial({ 1,1 })) == n9.end()
+        || std::find(n9.begin(), n9.end(), Polynomial({ -1,1 })) == n9.end()
+        || std::find(n9.begin(), n9.end(), Polynomial({ 2,1 })) == n9.end()
+        || std::find(n9.begin(), n9.end(), Polynomial({ -2,1 })) == n9.end())
+	{
+		std::cout << "!!!!!!!!!!!!!! Test 9 not passed !!!!!!!!!!!!!!\n";
+	}
+
+	Polynomial p10({ -12,-4,3,1 });
+	std::vector<Polynomial> n10 = p10.normalize();
+    if (std::find(n10.begin(), n10.end(), Polynomial({ 3,1 })) == n10.end()
+        || std::find(n10.begin(), n10.end(), Polynomial({ 2,1 })) == n10.end()
+        || std::find(n10.begin(), n10.end(), Polynomial({ -2,1 })) == n10.end())
+    {
+		std::cout << "!!!!!!!!!!!!!! Test 10 not passed !!!!!!!!!!!!!!\n";
+    }
+
+	Polynomial p11({ 0,3,11,6 });
+	std::vector<Polynomial> n11 = p11.normalize();
+	if (std::find(n11.begin(), n11.end(), Polynomial({ 0,1 })) == n11.end()
+        || std::find(n11.begin(), n11.end(), Polynomial({ 1,3 })) == n11.end()
+        || std::find(n11.begin(), n11.end(), Polynomial({ 3,2 })) == n11.end())
+	{
+		std::cout << "!!!!!!!!!!!!!! Test 11 not passed !!!!!!!!!!!!!!\n";
+	}
+
+	Polynomial p12({ 1,1,1 });
+	std::vector<Polynomial> n12 = p12.normalize();
+    if (std::find(n12.begin(), n12.end(), Polynomial({ 1,1,1 })) == n12.end())
+    {
+		std::cout << "!!!!!!!!!!!!!! Test 12 not passed !!!!!!!!!!!!!!\n";
+    }
 }
 
 bool Polynomial::isZero() const {
@@ -281,8 +583,7 @@ std::string Polynomial::toString() const {
     std::string output;
     for (int i = coefficients.size() - 1; i >= 0; i--) {
         if (coefficients[i] == 0) continue;
-        //if (coefficients[i] != 1 && coefficients[i] != -1)
-        if (coefficients[i] > 0 && !output.empty()) output += " + ";
+        if (coefficients[i] >= 0 && !output.empty()) output += " + ";
         else if (coefficients[i] < 0) output += " - ";
         if (coefficients[i].abs() != 1.0 || i == 0)
             output += coefficients[i].abs().toString();

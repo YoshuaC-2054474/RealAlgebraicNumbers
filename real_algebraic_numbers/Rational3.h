@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+//#include <boost/multiprecision/cpp_int.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 
@@ -61,6 +62,7 @@ public:
     double sqrt(int n=2) const;
     Rational gcd(const Rational& other) const;
     std::vector<cpp_int> factorNumerator() const;
+	bool isInteger() const;
 private:
     cpp_int numerator;
     cpp_int denominator;

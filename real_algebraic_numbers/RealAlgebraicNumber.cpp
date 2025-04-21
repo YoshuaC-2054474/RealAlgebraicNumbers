@@ -4,7 +4,8 @@
 #include <iostream>
 
 using Matrix = std::vector<std::vector<Polynomial>>;
-using Matrix2 = std::vector<std::vector<std::vector<Rational>>>;
+//using Matrix2 = std::vector<std::vector<std::vector<Rational>>>;
+
 
 Polynomial determinant(const Matrix& mat) {
 	const int n = mat.size();
@@ -26,35 +27,35 @@ Polynomial determinant(const Matrix& mat) {
 	return det;
 }
 
-std::vector<Rational> determinant2(const Matrix2& mat) {
-	const int n = mat.size();
-	if (n == 1) return mat[0][0];
-
-	std::vector<Rational> det(mat[0][0].size(), 0);
-	for (int j = 0; j < n; ++j) {
-		Matrix2 minor;
-		for (int i = 1; i < n; ++i) {
-			std::vector<std::vector<Rational>> row;
-			for (int k = 0; k < n; ++k)
-				if (k != j) row.push_back(mat[i][k]);
-			minor.push_back(row);
-		}
-		std::vector<Rational> term = mat[0][j];
-		std::vector<Rational> minorDet = determinant2(minor);
-		for (size_t k = 0; k < term.size(); ++k) {
-			term[k] *= minorDet[k];
-		}
-		if (j % 2) {
-			for (Rational& coeff : term) {
-				coeff = -coeff;
-			}
-		}
-		for (size_t k = 0; k < det.size(); ++k) {
-			det[k] += term[k];
-		}
-	}
-	return det;
-}
+//std::vector<Rational> determinant2(const Matrix2& mat) {
+//	const int n = mat.size();
+//	if (n == 1) return mat[0][0];
+//
+//	std::vector<Rational> det(mat[0][0].size(), 0);
+//	for (int j = 0; j < n; ++j) {
+//		Matrix2 minor;
+//		for (int i = 1; i < n; ++i) {
+//			std::vector<std::vector<Rational>> row;
+//			for (int k = 0; k < n; ++k)
+//				if (k != j) row.push_back(mat[i][k]);
+//			minor.push_back(row);
+//		}
+//		std::vector<Rational> term = mat[0][j];
+//		std::vector<Rational> minorDet = determinant2(minor);
+//		for (size_t k = 0; k < term.size(); ++k) {
+//			term[k] *= minorDet[k];
+//		}
+//		if (j % 2) {
+//			for (Rational& coeff : term) {
+//				coeff = -coeff;
+//			}
+//		}
+//		for (size_t k = 0; k < det.size(); ++k) {
+//			det[k] += term[k];
+//		}
+//	}
+//	return det;
+//}
 
 int binom(const int n, int k) {
 	int result = 1;
@@ -94,6 +95,7 @@ std::vector<Polynomial> poly_x_over_y(const Polynomial& f)
 	// We will have (n+1) polynomials: one for each power of y, from y^0 up to y^n.
 	// For j = n-i, the corresponding polynomial in x is the monomial f[i]*x^i.
 	std::vector<Polynomial> result(n + 1);
+
 	for (int i = 0; i <= n; i++) {
 		int j = n - i; // j is the power of y
 		// Create a polynomial in x which is a monomial of degree i.
@@ -144,7 +146,6 @@ Matrix createSylvesterMatrix(const std::vector<Polynomial>& f_sub, const Polynom
 RealAlgebraicNumber::RealAlgebraicNumber()
 	: polynomial({ 0 }), interval({ 0.0, 0.0 })
 {
-	//this->polynomial.normalize();
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval)
@@ -155,7 +156,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Int
 	{
 		refine();
 	}
-	this->polynomial.normalize();
+	//this->polynomial.normalize();
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Rational& lowerBound, const Rational& upperBound)
@@ -166,7 +167,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Rat
 	{
 		refine();
 	}
-	this->polynomial.normalize();
+	//this->polynomial.normalize();
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound, const Rational& upperBound)
@@ -177,7 +178,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficien
 	{
 		refine();
 	}
-	this->polynomial.normalize();
+	//this->polynomial.normalize();
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::fromInteger(const int n)
@@ -185,14 +186,27 @@ RealAlgebraicNumber RealAlgebraicNumber::fromInteger(const int n)
 	this->polynomial = Polynomial({ -n, 1 });
 	this->interval.lower_bound = n-0.01;
 	this->interval.upper_bound = n+0.01;
-	this->polynomial.normalize();
+	//this->polynomial.normalize();
 	return *this;
+}
+
+void printSylvester(const Matrix& sylvester)
+{
+	for (int i = 0; i < sylvester.size(); i++)
+	{
+		for (int j = 0; j < sylvester[i].size(); j++)
+		{
+			std::cout << sylvester[i][j].toString() << " | ";
+		}
+		std::cout << std::endl;
+	}
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator+(RealAlgebraicNumber& other)
 {
 	const std::vector<Polynomial> fXminY = poly_x_minus_y(this->polynomial);
 	const Matrix sylvester = createSylvesterMatrix(fXminY, other.polynomial);
+	//printSylvester(sylvester);
 	Polynomial f3 = determinant(sylvester);
 	f3.normalize();
 
@@ -243,18 +257,6 @@ static Rational maxRational(const Rational& r1, const Rational& r2, const Ration
 	return max;
 }
 
-void printSylvester(const Matrix& sylvester)
-{
-	for (int i = 0; i < sylvester.size(); i++)
-	{
-		for (int j = 0; j < sylvester[i].size(); j++)
-		{
-			std::cout << sylvester[i][j].toString() << " ";
-		}
-		std::cout << std::endl;
-	}
-}
-
 RealAlgebraicNumber RealAlgebraicNumber::operator*(RealAlgebraicNumber& other)
 {
 	const std::vector<Polynomial> fXoverY = poly_x_over_y(this->polynomial);
@@ -263,10 +265,13 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*(RealAlgebraicNumber& other)
 	Polynomial f3 = determinant(sylvester);
 	/*std::vector<Rational> f3Coeff = determinant2(sylvester);
 	Polynomial f3 = {f3Coeff};*/
-	f3.normalize();
+	//f3.normalize();
 
-	Polynomial test = { 0,-20,1 };
-	test.normalize();
+	//Polynomial test = {0,0,0,0,0,0,1,0,0,1};
+	//Polynomial test = { -729,0,0,0,0,0,1 };
+	Polynomial test = { 6,0,-5,0,1 };
+	//test.normalize();
+	test.testNormalize();
 
 	/*for (auto coef : f3.coefficients)
 	{
@@ -396,7 +401,9 @@ bool RealAlgebraicNumber::operator<(RealAlgebraicNumber& other)
 
 bool RealAlgebraicNumber::operator>(RealAlgebraicNumber& other)
 {
-	if (*this == other)
+	return other < *this;
+
+	/*if (*this == other)
 	{
 		return false;
 	}
@@ -413,7 +420,7 @@ bool RealAlgebraicNumber::operator>(RealAlgebraicNumber& other)
 		}
 		this->refine();
 		other.refine();
-	}
+	}*/
 }
 
 bool RealAlgebraicNumber::operator<=(RealAlgebraicNumber& other)
@@ -497,7 +504,7 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const
 {
 	if (n == 0) {
 		std::vector<Rational> coefficients = { 1 };
-		return { coefficients, 1, 1 };
+		return { coefficients, 0.99, 1.01 };
 	}
 	//if (n == 1) return *this;
 	RealAlgebraicNumber result = *this;

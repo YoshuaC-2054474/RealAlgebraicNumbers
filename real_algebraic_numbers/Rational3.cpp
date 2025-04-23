@@ -6,7 +6,7 @@
 
 Rational::Rational(const cpp_int& num, const cpp_int& den) {
     if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
-    cpp_int g = boost::multiprecision::gcd(num, den);
+    const cpp_int g = boost::multiprecision::gcd(num, den);
     numerator = num / g;
     denominator = den / g;
     if (denominator < 0) {
@@ -15,9 +15,9 @@ Rational::Rational(const cpp_int& num, const cpp_int& den) {
     }
 }
 
-Rational::Rational(int num, int den) {
+Rational::Rational(const int num, const int den) {
     if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
-    int g = std::gcd(num, den);
+    const int g = std::gcd(num, den);
     numerator = num / g;
     denominator = den / g;
     if (denominator < 0) {
@@ -37,26 +37,27 @@ Rational::Rational(const int numerator)
     this->denominator = 1;
 }
 
-Rational::Rational(double numer, const cpp_int& max_denominator) {
-    if (max_denominator <= 0) {
+Rational::Rational(const double numer, const cpp_int& maxDenominator) {
+    if (maxDenominator <= 0) {
         throw std::invalid_argument("Max denominator must be positive");
     }
 
     const double epsilon = 1e-10; // Tolerance for approximation
-    int a, h[3] = { 0, 1, 0 }, k[3] = { 1, 0, 0 };
+    int h[3] = { 0, 1, 0 };
+	int k[3] = { 1, 0, 0 };
     double x = std::abs(numer);
-    int sign = numer < 0 ? -1 : 1;
+    const int sign = numer < 0 ? -1 : 1;
 
     // Continued fraction coefficients
     for (int i = 0; ; ++i) {
-        a = static_cast<int>(std::floor(x));
+        const int a = static_cast<int>(std::floor(x));
         h[2] = a * h[1] + h[0];
         k[2] = a * k[1] + k[0];
 
-        if (k[2] > max_denominator) {
+        if (k[2] > maxDenominator) {
             // Compare previous two convergents to choose the best
-            double diff1 = std::abs(static_cast<double>(h[1]) / k[1] - x);
-            double diff2 = std::abs(static_cast<double>(h[2]) / k[2] - x);
+            const double diff1 = std::abs(static_cast<double>(h[1]) / k[1] - x);
+            const double diff2 = std::abs(static_cast<double>(h[2]) / k[2] - x);
             if (diff1 < diff2) {
                 h[2] = h[1];
                 k[2] = k[1];
@@ -76,12 +77,12 @@ Rational::Rational(double numer, const cpp_int& max_denominator) {
     denominator = k[2];
 
     // Simplify
-    cpp_int g = boost::multiprecision::gcd(numerator, denominator);
+    const cpp_int g = boost::multiprecision::gcd(numerator, denominator);
     numerator /= g;
     denominator /= g;
 }
 
-Rational::Rational(float numer) : Rational(static_cast<double>(numer)) {}
+Rational::Rational(const float numer) : Rational(static_cast<double>(numer)) {}
 
 Rational::Rational(const Rational& other) = default;
 
@@ -139,7 +140,7 @@ Rational operator/(const cpp_int& lsh, const Rational& other) {
 Rational Rational::operator%(const Rational& other) const
 {
 	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
-	cpp_int num = numerator * other.denominator;
+	const cpp_int num = numerator * other.denominator;
 	cpp_int den = denominator * other.numerator;
 	return { num % den, den };
 }
@@ -229,14 +230,14 @@ std::vector<cpp_int> Rational::factorNumerator() const
     //int numInt = num.convert_to<int>();
     if (numerator > 0)
     {
-        for (cpp_int i = 1; i <= numerator; i++)
+        for (cpp_int i = 1; i <= numerator; ++i)
         {
             if (numerator % i == 0) factors.push_back(i);
         }
     }
 	else
 	{
-		for (cpp_int i = -1; i >= numerator; i--)
+		for (cpp_int i = -1; i >= numerator; --i)
 		{
 			if (numerator % i == 0) factors.push_back(i);
 		}

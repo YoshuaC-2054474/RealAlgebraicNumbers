@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <string>
-//#include <boost/multiprecision/cpp_int.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 
@@ -14,7 +13,7 @@ public:
     Rational(int num, int den);
     Rational(const cpp_int& numerator);
     Rational(const int numerator);
-    Rational(double numer, const cpp_int& max_denominator = 1000000);
+    Rational(double numer, const cpp_int& maxDenominator = 1000000);
     Rational(float numer);
     Rational(const Rational& other);
 

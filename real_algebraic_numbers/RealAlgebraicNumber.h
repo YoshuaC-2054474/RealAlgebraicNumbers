@@ -18,11 +18,11 @@ class RealAlgebraicNumber
 {
 public:
 	Polynomial polynomial;
-	Interval interval = { 0, 0 };
+	Interval interval = { .lower_bound = 0, .upper_bound = 0 };
 
 	RealAlgebraicNumber();
-	RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval);
-	RealAlgebraicNumber(const Polynomial& polynomial, const Rational& lowerBound, const Rational& upperBound);
+	RealAlgebraicNumber(Polynomial polynomial, Interval interval);
+	RealAlgebraicNumber(Polynomial polynomial, const Rational& lowerBound, const Rational& upperBound);
 	//RealAlgebraicNumber(const RealAlgebraicNumber& other);
 	//RealAlgebraicNumber(const Polynomial& polynomial, int lowerBound, int upperBound);
 	//RealAlgebraicNumber(const std::vector<int>& coefficients, const Interval& interval);
@@ -52,6 +52,7 @@ public:
 
 	RealAlgebraicNumber operator+(RealAlgebraicNumber& other);
 	RealAlgebraicNumber operator-(const RealAlgebraicNumber& other);
+	RealAlgebraicNumber operator-() const;
 	RealAlgebraicNumber operator*(RealAlgebraicNumber& other);
 	RealAlgebraicNumber operator/(const RealAlgebraicNumber& other);
 
@@ -60,9 +61,6 @@ public:
 	RealAlgebraicNumber operator*=(RealAlgebraicNumber& other) { *this = *this * other; return *this; }
 	RealAlgebraicNumber operator/=(const RealAlgebraicNumber& other) { *this = *this / other; return *this; }
 
-	RealAlgebraicNumber operator-() const;
-	RealAlgebraicNumber inverse() const;
-
 	bool operator==(RealAlgebraicNumber& other);
 	bool operator!=(RealAlgebraicNumber& other);
 	bool operator<(RealAlgebraicNumber& other);
@@ -70,6 +68,7 @@ public:
 	bool operator<=(RealAlgebraicNumber& other);
 	bool operator>=(RealAlgebraicNumber& other);
 
+	RealAlgebraicNumber inverse() const;
 	RealAlgebraicNumber abs() const;
 	RealAlgebraicNumber sqrt(int n=2);
 	RealAlgebraicNumber pow(int n) const;
@@ -86,16 +85,17 @@ public:
 
 	std::string toString() const;
 
+	static void testOperators();
 private:
 
 	// Function to count sign variations in a sequence
-	int countSignVariations(const std::vector<Rational>& sequence) const;
+	static int countSignVariations(const std::vector<Rational>& sequence);
 
 	// Function to evaluate a polynomial at a given x-value
-	Rational evaluatePoly(const std::vector<Rational>& sequence, const Rational& x) const;
+	static Rational evaluatePoly(const std::vector<Rational>& sequence, const Rational& x);
 
 	// Function to count variations in Sturm sequence at x
-	int variationCount(const std::vector<Polynomial>& sturm, const Rational& x) const;
+	static int variationCount(const std::vector<Polynomial>& sturm, const Rational& x);
 
 	void normalize();
 

@@ -13,6 +13,7 @@ int main()
 	auto b = RealAlgebraicNumber({ -3,1,3 }, { {8,10},{85,100} });*/
 	try
 	{
+		RealAlgebraicNumber().testOperators();
 		/*auto a = RealAlgebraicNumber({ -60,42,-128,256,-12,10 }, { {50,100},{1,1} });
 		auto b = RealAlgebraicNumber({ -3,1,3 }, { {8,10},{85,100} });
 		auto c = a / b;
@@ -46,10 +47,26 @@ int main()
 		std::cout << "sqrt(a)^2 = " << e.toString() << std::endl;
 		std::cout << "a == e = " << (a == e) << std::endl;*/
 
-		auto f = RealAlgebraicNumber({ -2,0,1 }, { {1,1},{2,1} }); // sqrt(2)
-		auto g = RealAlgebraicNumber({ -3,0,1 }, { {1,1},{2,1} }); // sqrt(3)
-		auto h = f * g;
-		std::cout << "sqrt(2) * sqrt(3) = " << h.toString() << std::endl;
+		//auto f = RealAlgebraicNumber({ -2,0,1 }, { {1,1},{2,1} }); // sqrt(2)
+		//auto g = RealAlgebraicNumber({ -3,0,1 }, { {1,1},{2,1} }); // sqrt(3)
+		//auto h = f * g;
+		//auto inv = f.inverse();
+		//std::cout << "inverse(sqrt(2)) = " << inv.toString() << std::endl;
+		//std::cout << "sqrt(2) * sqrt(3) = " << h.toString() << std::endl;
+		//auto l = f - g;
+		//std::cout << "sqrt(2) - sqrt(3) = " << l.toString() << std::endl;
+		//auto i = f.pow(2);
+		//std::cout << "sqrt(2)^2 = " << i.toString() << std::endl;
+		//auto j = g.pow(2);
+		//std::cout << "sqrt(3)^2 = " << j.toString() << std::endl;
+		//auto k = i + j;
+		//std::cout << "sqrt(2)^2 + sqrt(3)^2 = " << k.toString() << std::endl;
+		//auto two = RealAlgebraicNumber().fromInteger(2);
+		//if (i == two)
+		//	std::cout << "sqrt(2)^2 == 2"  << std::endl;
+		//auto div = RealAlgebraicNumber().fromInteger(2) / RealAlgebraicNumber().fromInteger(3);
+		//std::cout << "2/3 = " << div.toString() << std::endl;
+		//std::cout << "inverse(2) = " << two.inverse().toString() << std::endl;
 	}
 	catch (const std::exception& e)
 	{

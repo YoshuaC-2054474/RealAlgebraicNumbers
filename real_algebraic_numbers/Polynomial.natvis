@@ -1,0 +1,10 @@
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <Type Name="Rational">
+    <!-- private members numerator, denominator from Rational3.h -->
+    <DisplayString>{numerator}/{denominator}</DisplayString>
+  </Type>
+
+  
+
+</AutoVisualizer>

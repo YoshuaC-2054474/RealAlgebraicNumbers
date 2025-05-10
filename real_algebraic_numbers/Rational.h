@@ -3,45 +3,51 @@
 
 #include <iostream>
 #include <string>
+#include <boost/multiprecision/cpp_int.hpp>
+using namespace boost::multiprecision;
 
-class Rational
-{
+class Rational {
 public:
 	Rational() : numerator(0), denominator(1) {}
-	Rational(int numerator, int denominator);
-	Rational(long long numerator, long long denominator);
+	Rational(const cpp_int& num, const cpp_int& den);
+	Rational(int num, int den);
+	Rational(const cpp_int& numerator);
 	Rational(int numerator);
-	Rational(long long numerator);
-	Rational(double numer);
+	Rational(double numer, const cpp_int& maxDenominator = 1000000);
 	Rational(float numer);
 	Rational(const Rational& other);
 
 	std::string toString() const;
 	void print() const;
 
-	friend std::ostream& operator<<(std::ostream& os, const Rational& rational) {
-		os << rational.numerator << "/" << rational.denominator;
-		return os;
+	int toInt() const {
+		return numerator.convert_to<int>();
+		//return { numerator.convert_to<int>(), denominator.convert_to<int>() };
 	}
 
-	explicit operator double() const
-	{
-		return static_cast<double>(numerator) / denominator;
+	/*friend std::ostream& operator<<(std::ostream& os, const Rational& rational) {
+	    os << rational.numerator << "/" << rational.denominator;
+	    return os;
+	}*/
+
+	explicit operator double() const {
+		return numerator.convert_to<double>() / denominator.convert_to<double>();
 	}
 
 	Rational operator+(const Rational& other) const;
 	Rational operator-(const Rational& other) const;
-	friend Rational operator-(const long long lsh, const Rational& other);
+	friend Rational operator-(const cpp_int& lsh, const Rational& other);
 	Rational operator-() const;
 	Rational operator*(const Rational& other) const;
+	friend Rational operator*(const cpp_int& lsh, const Rational& other);
 	Rational operator/(const Rational& other) const;
-	friend Rational operator/(const long long lsh, const Rational& other);
-	/*Rational operator%(const Rational& other) const;*/
+	friend Rational operator/(const cpp_int& lsh, const Rational& other);
+	Rational operator%(const Rational& other) const;
 
-	Rational operator+=(const Rational& other);
-	Rational operator-=(const Rational& other);
-	Rational operator*=(const Rational& other);
-	Rational operator/=(const Rational& other);
+	Rational& operator+=(const Rational& other);
+	Rational& operator-=(const Rational& other);
+	Rational& operator*=(const Rational& other);
+	Rational& operator/=(const Rational& other);
 
 	bool operator==(const Rational& other) const;
 	bool operator!=(const Rational& other) const;
@@ -52,11 +58,16 @@ public:
 
 	Rational abs() const;
 	Rational inverse() const;
-	Rational sqrt(const int n) const;
+	double sqrt(int n = 2) const;
 	Rational gcd(const Rational& other) const;
+	std::vector<cpp_int> factorNumerator() const;
+	bool isInteger() const;
+
 private:
-	long long numerator;
-	long long denominator;
+	cpp_int numerator;
+	cpp_int denominator;
+
+	//static cpp_int computeGcd(const cpp_int a, const cpp_int b);
 };
 
 #endif

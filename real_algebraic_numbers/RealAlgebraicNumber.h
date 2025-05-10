@@ -8,27 +8,28 @@
 
 #include "Polynomial.h"
 
-struct Interval
-{
+struct Interval {
 	Rational lower_bound;
 	Rational upper_bound;
 };
 
-class RealAlgebraicNumber
-{
+class RealAlgebraicNumber {
 public:
 	Polynomial polynomial;
-	Interval interval = { .lower_bound = 0, .upper_bound = 0 };
+	Interval interval = {.lower_bound = 0, .upper_bound = 0};
 
 	RealAlgebraicNumber();
-	RealAlgebraicNumber(Polynomial polynomial, Interval interval);
-	RealAlgebraicNumber(Polynomial polynomial, const Rational& lowerBound, const Rational& upperBound);
+	RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval);
+	RealAlgebraicNumber(const Polynomial& polynomial, const Rational& lowerBound, const Rational& upperBound);
 	//RealAlgebraicNumber(const RealAlgebraicNumber& other);
 	//RealAlgebraicNumber(const Polynomial& polynomial, int lowerBound, int upperBound);
 	//RealAlgebraicNumber(const std::vector<int>& coefficients, const Interval& interval);
-	RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound, const Rational& upperBound);
+	RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound,
+	                    const Rational& upperBound);
+	RealAlgebraicNumber(int value);
+	RealAlgebraicNumber(double value);
 
-	RealAlgebraicNumber fromInteger(const int n);
+	//RealAlgebraicNumber fromInteger(const int n);
 
 	//void fromRational(const int p, int q)
 	//{
@@ -50,27 +51,42 @@ public:
 	//}
 	//~RealAlgebraicNumber();
 
-	RealAlgebraicNumber operator+(RealAlgebraicNumber& other);
-	RealAlgebraicNumber operator-(const RealAlgebraicNumber& other);
+	RealAlgebraicNumber operator+(const RealAlgebraicNumber& other) const;
+	RealAlgebraicNumber operator-(const RealAlgebraicNumber& other) const;
 	RealAlgebraicNumber operator-() const;
-	RealAlgebraicNumber operator*(RealAlgebraicNumber& other);
-	RealAlgebraicNumber operator/(const RealAlgebraicNumber& other);
+	RealAlgebraicNumber operator*(const RealAlgebraicNumber& other) const;
+	RealAlgebraicNumber operator/(const RealAlgebraicNumber& other) const;
 
-	RealAlgebraicNumber operator+=(RealAlgebraicNumber& other) { *this = *this + other; return *this; }
-	RealAlgebraicNumber operator-=(const RealAlgebraicNumber& other) { *this = *this - other; return *this; }
-	RealAlgebraicNumber operator*=(RealAlgebraicNumber& other) { *this = *this * other; return *this; }
-	RealAlgebraicNumber operator/=(const RealAlgebraicNumber& other) { *this = *this / other; return *this; }
+	RealAlgebraicNumber operator+=(const RealAlgebraicNumber& other) {
+		*this = *this + other;
+		return *this;
+	}
 
-	bool operator==(RealAlgebraicNumber& other);
-	bool operator!=(RealAlgebraicNumber& other);
-	bool operator<(RealAlgebraicNumber& other);
-	bool operator>(RealAlgebraicNumber& other);
-	bool operator<=(RealAlgebraicNumber& other);
-	bool operator>=(RealAlgebraicNumber& other);
+	RealAlgebraicNumber operator-=(const RealAlgebraicNumber& other) {
+		*this = *this - other;
+		return *this;
+	}
+
+	RealAlgebraicNumber operator*=(const RealAlgebraicNumber& other) {
+		*this = *this * other;
+		return *this;
+	}
+
+	RealAlgebraicNumber operator/=(const RealAlgebraicNumber& other) {
+		*this = *this / other;
+		return *this;
+	}
+
+	bool operator==(const RealAlgebraicNumber& other) const;
+	bool operator!=(const RealAlgebraicNumber& other) const;
+	bool operator<(const RealAlgebraicNumber& other) const;
+	bool operator>(const RealAlgebraicNumber& other) const;
+	bool operator<=(const RealAlgebraicNumber& other) const;
+	bool operator>=(const RealAlgebraicNumber& other) const;
 
 	RealAlgebraicNumber inverse() const;
 	RealAlgebraicNumber abs() const;
-	RealAlgebraicNumber sqrt(int n=2);
+	RealAlgebraicNumber sqrt(int n = 2);
 	RealAlgebraicNumber pow(int n) const;
 
 	bool isZero() const;
@@ -86,8 +102,8 @@ public:
 	std::string toString() const;
 
 	static void testOperators();
-private:
 
+private:
 	// Function to count sign variations in a sequence
 	static int countSignVariations(const std::vector<Rational>& sequence);
 

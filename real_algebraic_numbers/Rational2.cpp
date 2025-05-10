@@ -4,173 +4,243 @@
 #include <sstream>
 #include <numeric>
 
-Rational::Rational(const mpz_class& num, const mpz_class& den) {
-    if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
-    mpz_class g = computeGcd(num, den);
-    numerator = num / g;
-    denominator = den / g;
-    if (denominator < 0) {
-        numerator = -numerator;
-        denominator = -denominator;
-    }
+Rational::Rational(const long long num, const long long den) {
+	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
+	const long long g = std::gcd(num, den);
+	numerator = num / g;
+	denominator = den / g;
+	if (denominator < 0) {
+		numerator = -numerator;
+		denominator = -denominator;
+	}
 }
 
-Rational::Rational(int num, int den) {
-    if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
-    int g = std::gcd(num, den);
-    numerator = num / g;
-    denominator = den / g;
-    if (denominator < 0) {
-        numerator = -numerator;
-        denominator = -denominator;
-    }
+Rational::Rational(const int num, const int den) {
+	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
+	const int g = std::gcd(num, den);
+	numerator = num / g;
+	denominator = den / g;
+	if (denominator < 0) {
+		numerator = -numerator;
+		denominator = -denominator;
+	}
 }
 
-Rational::Rational(const int numerator)
-{
-    this->numerator = numerator;
-    this->denominator = 1;
+Rational::Rational(const long long numerator) {
+	this->numerator = numerator;
+	this->denominator = 1;
 }
 
-Rational::Rational(const mpz_class& num) : numerator(num), denominator(1) {}
-
-Rational::Rational(double numer) {
-    mpz_class denom = 1;
-    while (numer != std::floor(numer)) {
-        numer *= 10;
-        denom *= 10;
-    }
-    mpz_class numInt(numer);
-    mpz_class g = computeGcd(numInt, denom);
-    numerator = numInt / g;
-    denominator = denom / g;
+Rational::Rational(const int numerator) {
+	this->numerator = numerator;
+	this->denominator = 1;
 }
 
-Rational::Rational(float numer) : Rational(static_cast<double>(numer)) {}
+Rational::Rational(const double numer, const long long maxDenominator) {
+	if (maxDenominator <= 0) {
+		throw std::invalid_argument("Max denominator must be positive");
+	}
+
+	constexpr double epsilon = 1e-10; // Tolerance for approximation
+	int h[3] = {0, 1, 0};
+	int k[3] = {1, 0, 0};
+	double x = std::abs(numer);
+	const int sign = numer < 0 ? -1 : 1;
+
+	// Continued fraction coefficients
+	for (int i = 0; ; ++i) {
+		const int a = static_cast<int>(std::floor(x));
+		h[2] = a * h[1] + h[0];
+		k[2] = a * k[1] + k[0];
+
+		if (k[2] > maxDenominator) {
+			// Compare previous two convergents to choose the best
+			const double diff1 = std::abs(static_cast<double>(h[1]) / k[1] - x);
+			const double diff2 = std::abs(static_cast<double>(h[2]) / k[2] - x);
+			if (diff1 < diff2) {
+				h[2] = h[1];
+				k[2] = k[1];
+			}
+			break;
+		}
+
+		// Shift history
+		h[0] = h[1];
+		h[1] = h[2];
+		k[0] = k[1];
+		k[1] = k[2];
+
+		if (std::abs(x - a) < epsilon) break; // Terminate if exact
+		x = 1.0 / (x - a);
+	}
+
+	numerator = sign * h[2];
+	denominator = k[2];
+
+	// Simplify
+	const long long g = std::gcd(numerator, denominator);
+	numerator /= g;
+	denominator /= g;
+}
+
+Rational::Rational(const float numer) : Rational(static_cast<double>(numer)) {}
 
 Rational::Rational(const Rational& other) = default;
 
 std::string Rational::toString() const {
-    if (denominator == 1) return numerator.get_str();
-    return numerator.get_str() + "/" + denominator.get_str();
+	if (denominator == 1) return std::to_string(numerator);
+	return std::to_string(numerator) + "/" + std::to_string(denominator);
 }
 
 void Rational::print() const {
-    std::cout << numerator << "/" << denominator;
+	std::cout << numerator << "/" << denominator;
 }
 
 // Arithmetic Operators
 Rational Rational::operator+(const Rational& other) const {
-    mpz_class num = numerator * other.denominator + other.numerator * denominator;
-    mpz_class den = denominator * other.denominator;
-    return { num, den };
+	long long num = numerator * other.denominator + other.numerator * denominator;
+	long long den = denominator * other.denominator;
+	return {num, den};
 }
 
 Rational Rational::operator-(const Rational& other) const {
-    mpz_class num = numerator * other.denominator - other.numerator * denominator;
-    mpz_class den = denominator * other.denominator;
-    return { num, den };
+	long long num = numerator * other.denominator - other.numerator * denominator;
+	long long den = denominator * other.denominator;
+	return {num, den};
 }
 
-Rational operator-(const mpz_class& lsh, const Rational& other) {
-    return Rational(lsh) - other;
+Rational operator-(const long long lsh, const Rational& other) {
+	return Rational(lsh) - other;
 }
 
 Rational Rational::operator-() const {
-    return { -numerator, denominator };
+	return {-numerator, denominator};
 }
 
 Rational Rational::operator*(const Rational& other) const {
-    mpz_class num = numerator * other.numerator;
-    mpz_class den = denominator * other.denominator;
-    return { num, den };
+	long long num = numerator * other.numerator;
+	long long den = denominator * other.denominator;
+	return {num, den};
+}
+
+Rational operator*(const long long lsh, const Rational& other) {
+	return Rational(lsh) * other;
 }
 
 Rational Rational::operator/(const Rational& other) const {
-    if (other.numerator == 0) throw std::invalid_argument("Division by zero");
-    mpz_class num = numerator * other.denominator;
-    mpz_class den = denominator * other.numerator;
-    return { num, den };
+	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
+	long long num = numerator * other.denominator;
+	long long den = denominator * other.numerator;
+	return {num, den};
 }
 
-Rational operator/(const mpz_class& lsh, const Rational& other) {
-    return Rational(lsh) / other;
+Rational operator/(const long long lsh, const Rational& other) {
+	return Rational(lsh) / other;
+}
+
+Rational Rational::operator%(const Rational& other) const {
+	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
+	const long long num = numerator * other.denominator;
+	long long den = denominator * other.numerator;
+	return {num % den, den};
 }
 
 // Assignment Operators
 Rational& Rational::operator+=(const Rational& other) {
-    *this = *this + other;
-    return *this;
+	*this = *this + other;
+	return *this;
 }
 
 Rational& Rational::operator-=(const Rational& other) {
-    *this = *this - other;
-    return *this;
+	*this = *this - other;
+	return *this;
 }
 
 Rational& Rational::operator*=(const Rational& other) {
-    *this = *this * other;
-    return *this;
+	*this = *this * other;
+	return *this;
 }
 
 Rational& Rational::operator/=(const Rational& other) {
-    *this = *this / other;
-    return *this;
+	*this = *this / other;
+	return *this;
 }
 
 // Comparison Operators
 bool Rational::operator==(const Rational& other) const {
-    return numerator * other.denominator == other.numerator * denominator;
+	return numerator * other.denominator == other.numerator * denominator;
 }
 
 bool Rational::operator!=(const Rational& other) const {
-    return !(*this == other);
+	return !(*this == other);
 }
 
 bool Rational::operator<(const Rational& other) const {
-    return numerator * other.denominator < other.numerator * denominator;
+	return numerator * other.denominator < other.numerator * denominator;
 }
 
 bool Rational::operator>(const Rational& other) const {
-    return other < *this;
+	return other < *this;
 }
 
 bool Rational::operator<=(const Rational& other) const {
-    return !(*this > other);
+	return !(*this > other);
 }
 
 bool Rational::operator>=(const Rational& other) const {
-    return !(*this < other);
+	return !(*this < other);
 }
 
 // Utility Methods
 Rational Rational::abs() const {
 	if (numerator >= 0) return *this;
-    return { -numerator, denominator };
-    //return { mpz_class::abs(numerator), denominator.abs()};
+	return {-numerator, denominator};
+	//return { mpz_class::abs(numerator), denominator.abs()};
 }
 
 Rational Rational::inverse() const {
-    if (numerator == 0) throw std::invalid_argument("Cannot invert zero");
-    return { denominator, numerator };
+	if (numerator == 0) throw std::invalid_argument("Cannot invert zero");
+	return {denominator, numerator};
 }
 
-Rational Rational::sqrt(int n) const {
-    if (n == 0) throw std::invalid_argument("Zeroth root is undefined");
-    if (n % 2 == 0 && numerator < 0)
-        throw std::invalid_argument("Even root of negative number");
-    double val = mpz_get_d(numerator.get_mpz_t()) / mpz_get_d(denominator.get_mpz_t());
-    return Rational(std::pow(val, 1.0 / n));
+double Rational::sqrt(const int n) const {
+	if (n == 0) throw std::invalid_argument("Zeroth root is undefined");
+	if (n % 2 == 0 && numerator < 0)
+		throw std::invalid_argument("Even root of negative number");
+	const double val = static_cast<double>(numerator) / static_cast<double>(denominator);
+	return std::pow(val, 1.0 / n);
 }
 
 Rational Rational::gcd(const Rational& other) const {
-    mpz_class numGcd = computeGcd(numerator, other.numerator);
-    mpz_class denLcm = (denominator * other.denominator) / computeGcd(denominator, other.denominator);
-    return { numGcd, denLcm };
+	long long numGcd = std::gcd(numerator * other.denominator, other.numerator * denominator);
+	long long denLcm = (denominator * other.denominator);
+	// / boost::multiprecision::gcd(denominator, other.denominator);
+	return {numGcd, denLcm};
 }
 
-mpz_class Rational::computeGcd(const mpz_class& a, const mpz_class& b) {
-    mpz_class g;
-    mpz_gcd(g.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
-    return g;
+//cpp_int Rational::computeGcd(const cpp_int& a, const cpp_int& b) {
+//    cpp_int g;
+//    cpp_int(g.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
+//    return g;
+//}
+
+std::vector<long long> Rational::factorNumerator() const {
+	std::vector<long long> factors;
+	//cpp_int num = numerator;
+	//int numInt = num.convert_to<int>();
+	if (numerator > 0) {
+		for (long long i = 1; i <= numerator; ++i) {
+			if (numerator % i == 0) factors.push_back(i);
+		}
+	}
+	else {
+		for (long long i = -1; i >= numerator; --i) {
+			if (numerator % i == 0) factors.push_back(i);
+		}
+	}
+	return factors;
+}
+
+bool Rational::isInteger() const {
+	return denominator == 1;
 }

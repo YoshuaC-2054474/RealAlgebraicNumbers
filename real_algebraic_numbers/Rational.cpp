@@ -1,326 +1,245 @@
 #include "Rational.h"
 #include <stdexcept>
+#include <cmath>
+#include <sstream>
 #include <numeric>
 
-Rational::Rational(const int numerator, const int denominator)
-{
-	if (denominator == 0) {
-		throw std::invalid_argument("Denominator cannot be zero");
+Rational::Rational(const cpp_int& num, const cpp_int& den) {
+	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
+	const cpp_int g = boost::multiprecision::gcd(num, den);
+	numerator = num / g;
+	denominator = den / g;
+	if (denominator < 0) {
+		numerator = -numerator;
+		denominator = -denominator;
 	}
-	const int g = std::gcd(numerator, denominator);
-	this->numerator = numerator / g;
-	this->denominator = denominator / g;
 }
 
-Rational::Rational(const long long numerator, const long long denominator)
-{
-	if (denominator == 0) {
-		throw std::invalid_argument("Denominator cannot be zero");
+Rational::Rational(const int num, const int den) {
+	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
+	const int g = std::gcd(num, den);
+	numerator = num / g;
+	denominator = den / g;
+	if (denominator < 0) {
+		numerator = -numerator;
+		denominator = -denominator;
 	}
-	const long long g = std::gcd(numerator, denominator);
-	this->numerator = numerator / g;
-	this->denominator = denominator / g;
 }
 
-Rational::Rational(const int numerator)
-{
+Rational::Rational(const cpp_int& numerator) {
 	this->numerator = numerator;
 	this->denominator = 1;
 }
 
-Rational::Rational(const long long numerator)
-{
-	this->numerator = numerator;
+Rational::Rational(const int numerator) {
+	this->numerator = cpp_int(numerator);
 	this->denominator = 1;
 }
 
-Rational::Rational(double numer)
-{
-	int denom = 1;
-	while (numer != std::floor(numer))
-	{
-		numer *= 10;
-		denom *= 10;
+Rational::Rational(const double numer, const cpp_int& maxDenominator) {
+	if (maxDenominator <= 0) {
+		throw std::invalid_argument("Max denominator must be positive");
 	}
-	const int numerInt = static_cast<int>(std::floor(numer));
-	const int g = std::gcd(numerInt, denom);
-	this->numerator = numerInt / g;
-	this->denominator = denom / g;
-}
 
-Rational::Rational(float numer)
-{
-	int denom = 1;
-	while (numer != std::floor(numer))
-	{
-		numer *= 10;
-		denom *= 10;
+	constexpr double epsilon = 1e-10; // Tolerance for approximation
+	int h[3] = {0, 1, 0};
+	int k[3] = {1, 0, 0};
+	double x = std::abs(numer);
+	const int sign = numer < 0 ? -1 : 1;
+
+	// Continued fraction coefficients
+	for (int i = 0; ; ++i) {
+		const int a = static_cast<int>(std::floor(x));
+		h[2] = a * h[1] + h[0];
+		k[2] = a * k[1] + k[0];
+
+		if (k[2] > maxDenominator) {
+			// Compare previous two convergents to choose the best
+			const double diff1 = std::abs(static_cast<double>(h[1]) / k[1] - x);
+			const double diff2 = std::abs(static_cast<double>(h[2]) / k[2] - x);
+			if (diff1 < diff2) {
+				h[2] = h[1];
+				k[2] = k[1];
+			}
+			break;
+		}
+
+		// Shift history
+		h[0] = h[1];
+		h[1] = h[2];
+		k[0] = k[1];
+		k[1] = k[2];
+
+		if (std::abs(x - a) < epsilon) break; // Terminate if exact
+		x = 1.0 / (x - a);
 	}
-	const int numerInt = static_cast<int>(std::floor(numer));
-	const int g = std::gcd(numerInt, denom);
-	this->numerator = numerInt / g;
-	this->denominator = denom / g;
+
+	numerator = sign * h[2];
+	denominator = k[2];
+
+	// Simplify
+	const cpp_int g = boost::multiprecision::gcd(numerator, denominator);
+	numerator /= g;
+	denominator /= g;
 }
 
-Rational::Rational(const Rational& other)
-{
-	this->numerator = other.numerator;
-	this->denominator = other.denominator;
+Rational::Rational(const float numer) : Rational(static_cast<double>(numer)) {}
+
+Rational::Rational(const Rational& other) = default;
+
+std::string Rational::toString() const {
+	if (denominator == 1) return numerator.str();
+	return numerator.str() + "/" + denominator.str();
 }
 
-std::string Rational::toString() const
-{
-	if (denominator == 1)
-	{
-		return std::to_string(numerator);
-	}
-	else
-	{
-		return std::to_string(numerator) + "/" + std::to_string(denominator);
-	}
+void Rational::print() const {
+	std::cout << numerator << "/" << denominator;
 }
 
-void Rational::print() const
-{
-	if (denominator == 1)
-	{
-		std::cout << numerator;
-	}
-	else
-	{
-		std::cout << numerator << "/" << denominator;
-	}
+// Arithmetic Operators
+Rational Rational::operator+(const Rational& other) const {
+	cpp_int num = numerator * other.denominator + other.numerator * denominator;
+	cpp_int den = denominator * other.denominator;
+	return {num, den};
 }
 
-bool willAdditionOverflow(const Rational& a, const Rational& b) {
-	if (b > 0 && a > std::numeric_limits<long long>::max() - b)
-		return true;
-	if (b < 0 && a < std::numeric_limits<long long>::min() - b)
-		return true;
-	return false;
+Rational Rational::operator-(const Rational& other) const {
+	cpp_int num = numerator * other.denominator - other.numerator * denominator;
+	cpp_int den = denominator * other.denominator;
+	return {num, den};
 }
 
-Rational Rational::operator+(const Rational& other) const
-{
-	if (willAdditionOverflow(*this, other))
-		throw std::overflow_error("Addition overflow error");
-
-	if (other.numerator == 0 && other.denominator == 1)
-	{
-		return *this;
-	}
-	const long long num = static_cast<long long>(numerator) * other.denominator + static_cast<long long>(other.numerator) * denominator;
-	const long long denom = static_cast<long long>(denominator) * other.denominator;
-	return { num, denom };
+Rational operator-(const cpp_int& lsh, const Rational& other) {
+	return Rational(lsh) - other;
 }
 
-Rational Rational::operator-(const Rational& other) const
-{
-	if (other.numerator == 0 && other.denominator == 1)
-	{
-		return *this;
-	}
-	const long long num = static_cast<long long>(numerator) * other.denominator - static_cast<long long>(other.numerator) * denominator;
-	const long long denom = static_cast<long long>(denominator) * other.denominator;
-	return { num, denom };
+Rational Rational::operator-() const {
+	return {-numerator, denominator};
 }
 
-Rational operator-(const long long lsh, const Rational& other)
-{
-	if (other.numerator == 0 && other.denominator == 1)
-	{
-		return lsh;
-	}
-	const Rational temp = lsh;
-	const long long num = static_cast<long long>(temp.numerator) * other.denominator - static_cast<long long>(other.numerator) * temp.denominator;
-	const long long denom = static_cast<long long>(temp.denominator) * other.denominator;
-	return { num, denom };
+Rational Rational::operator*(const Rational& other) const {
+	cpp_int num = numerator * other.numerator;
+	cpp_int den = denominator * other.denominator;
+	return {num, den};
 }
 
-Rational Rational::operator-() const
-{
-	return { -numerator, denominator };
+Rational operator*(const cpp_int& lsh, const Rational& other) {
+	return Rational(lsh) * other;
 }
 
-bool willMultiplicationOverflow(const Rational& a, const Rational& b) {
-	// Handle zero cases
-	if (a == 0 || b == 0) return false;
-	// Check overflow depending on the signs
-	if (a > 0) {
-		if (b > 0)
-			return a > std::numeric_limits<long long>::max() / b;
-		else
-			return b < std::numeric_limits<long long>::min() / a;
-	}
-	else {
-		if (b > 0)
-			return a < std::numeric_limits<long long>::min() / b;
-		else
-			return a != 0 && b < std::numeric_limits<long long>::max() / a;
-	}
+Rational Rational::operator/(const Rational& other) const {
+	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
+	cpp_int num = numerator * other.denominator;
+	cpp_int den = denominator * other.numerator;
+	return {num, den};
 }
 
-Rational Rational::operator*(const Rational& other) const
-{
-	if (willMultiplicationOverflow(*this, other))
-		throw std::overflow_error("Multiplication overflow error");
-
-	if (other.numerator == 0 && other.denominator == 1) return { 0, 1 };
-	if (other.numerator == 1 && other.denominator == 1) return *this;
-	if (other.numerator == -1 && other.denominator == 1) return -(*this);
-
-	const long long num = static_cast<long long>(numerator) * other.numerator;
-	const long long denom = static_cast<long long>(denominator) * other.denominator;
-	return { num, denom };
+Rational operator/(const cpp_int& lsh, const Rational& other) {
+	return Rational(lsh) / other;
 }
 
-Rational Rational::operator/(const Rational& other) const
-{
-	if (other.numerator == 0 && other.denominator == 1) throw std::invalid_argument("Cannot divide by zero");
-	if (other.numerator == 1 && other.denominator == 1) return *this;
-	if (other.numerator == -1 && other.denominator == 1) return -(*this);
-
-	const long long num = static_cast<long long>(numerator) * other.denominator;
-	const long long denom = static_cast<long long>(denominator) * other.numerator;
-	return { num, denom };
+Rational Rational::operator%(const Rational& other) const {
+	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
+	const cpp_int num = numerator * other.denominator;
+	cpp_int den = denominator * other.numerator;
+	return {num % den, den};
 }
 
-Rational operator/(const long long lsh, const Rational& other)
-{
-	if (other.numerator == 0 && other.denominator == 1) throw std::invalid_argument("Cannot divide by zero");
-	if (other.numerator == 1 && other.denominator == 1) return lsh;
-	if (other.numerator == -1 && other.denominator == 1) return -lsh;
-
-	const Rational temp = lsh;
-	const long long num = static_cast<long long>(temp.numerator) * other.denominator;
-	const long long denom = static_cast<long long>(temp.denominator) * other.numerator;
-	return { num, denom };
-}
-
-//Rational Rational::operator%(const Rational& other) const
-//{
-//	long long numGcd = std::gcd(numerator, other.numerator);
-//	long long denomGcd = denominator * other.denominator;
-//	return { numGcd, denomGcd };
-//}
-
-Rational Rational::operator+=(const Rational& other)
-{
+// Assignment Operators
+Rational& Rational::operator+=(const Rational& other) {
 	*this = *this + other;
 	return *this;
 }
 
-Rational Rational::operator-=(const Rational& other)
-{
+Rational& Rational::operator-=(const Rational& other) {
 	*this = *this - other;
 	return *this;
 }
 
-Rational Rational::operator*=(const Rational& other)
-{
+Rational& Rational::operator*=(const Rational& other) {
 	*this = *this * other;
 	return *this;
 }
 
-Rational Rational::operator/=(const Rational& other)
-{
+Rational& Rational::operator/=(const Rational& other) {
 	*this = *this / other;
 	return *this;
 }
 
-bool Rational::operator==(const Rational& other) const
-{
-	const long long left = static_cast<long long>(numerator) * other.denominator;
-	const long long right = static_cast<long long>(other.numerator) * denominator;
-	return left == right;
+// Comparison Operators
+bool Rational::operator==(const Rational& other) const {
+	return numerator * other.denominator == other.numerator * denominator;
 }
 
-bool Rational::operator!=(const Rational& other) const
-{
-	const long long left = static_cast<long long>(numerator) * other.denominator;
-	const long long right = static_cast<long long>(other.numerator) * denominator;
-	return left != right;
+bool Rational::operator!=(const Rational& other) const {
+	return !(*this == other);
 }
 
-bool Rational::operator<(const Rational& other) const
-{
-	const long long left = static_cast<long long>(numerator) * other.denominator;
-	const long long right = static_cast<long long>(other.numerator) * denominator;
-	return left < right;
+bool Rational::operator<(const Rational& other) const {
+	return numerator * other.denominator < other.numerator * denominator;
 }
 
-bool Rational::operator>(const Rational& other) const
-{
-	const long long left = static_cast<long long>(numerator) * other.denominator;
-	const long long right = static_cast<long long>(other.numerator) * denominator;
-	return left > right;
+bool Rational::operator>(const Rational& other) const {
+	return other < *this;
 }
 
-bool Rational::operator<=(const Rational& other) const
-{
-	const long long left = static_cast<long long>(numerator) * other.denominator;
-	const long long right = static_cast<long long>(other.numerator) * denominator;
-	return left <= right;
+bool Rational::operator<=(const Rational& other) const {
+	return !(*this > other);
 }
 
-bool Rational::operator>=(const Rational& other) const
-{
-	const long long left = static_cast<long long>(numerator) * other.denominator;
-	const long long right = static_cast<long long>(other.numerator) * denominator;
-	return left >= right;
+bool Rational::operator>=(const Rational& other) const {
+	return !(*this < other);
 }
 
-Rational Rational::abs() const
-{
-	return { std::abs(numerator), std::abs(denominator) };
+// Utility Methods
+Rational Rational::abs() const {
+	if (numerator >= 0) return *this;
+	return {-numerator, denominator};
+	//return { mpz_class::abs(numerator), denominator.abs()};
 }
 
-Rational Rational::inverse() const
-{
-	if (numerator == 0)
-	{
-		throw std::invalid_argument("Cannot invert zero");
-	}
-	else if (numerator < 0)
-	{
-		return { -denominator, -numerator };
-	}
-	else
-	{
-		return { denominator, numerator };
-	}
+Rational Rational::inverse() const {
+	if (numerator == 0) throw std::invalid_argument("Cannot invert zero");
+	return {denominator, numerator};
 }
 
-Rational Rational::sqrt(const int n) const
-{
-	if (n == 0)
-	{
-		throw std::invalid_argument("Cannot take zeroth root");
-	}
+double Rational::sqrt(const int n) const {
+	if (n == 0) throw std::invalid_argument("Zeroth root is undefined");
 	if (n % 2 == 0 && numerator < 0)
-	{
-		throw std::invalid_argument("Cannot take even root of negative number");
-	}
-
-	float result = static_cast<float>(numerator) / denominator;
-	result = std::pow(result, 1.0 / n);
-
-	return result;
-
-	//long long numSqrt = static_cast<long long>(std::pow(std::abs(numerator), 1.0 / n));
-	//long long denomSqrt = static_cast<long long>(std::pow(std::abs(denominator), 1.0 / n));
-
-	//if (n % 2 != 0 && numerator < 0)
-	//{
-	//	return { -numSqrt, denomSqrt };
-	//}
-
-	////long long numSqrt = static_cast<long long>(std::pow(numerator, 1.0 / n));
-	//return { numSqrt, denomSqrt };
+		throw std::invalid_argument("Even root of negative number");
+	const double val = numerator.convert_to<double>() / denominator.convert_to<double>();
+	return std::pow(val, 1.0 / n);
 }
 
 Rational Rational::gcd(const Rational& other) const {
-	long long numGcd = std::gcd(numerator, other.numerator);
-	long long denomGcd = denominator * other.denominator;
-	return { numGcd, denomGcd };
+	cpp_int numGcd = boost::multiprecision::gcd(numerator * other.denominator, other.numerator * denominator);
+	cpp_int denLcm = (denominator * other.denominator); // / boost::multiprecision::gcd(denominator, other.denominator);
+	return {numGcd, denLcm};
+}
+
+//cpp_int Rational::computeGcd(const cpp_int& a, const cpp_int& b) {
+//    cpp_int g;
+//    cpp_int(g.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
+//    return g;
+//}
+
+std::vector<cpp_int> Rational::factorNumerator() const {
+	std::vector<cpp_int> factors;
+	//cpp_int num = numerator;
+	//int numInt = num.convert_to<int>();
+	if (numerator > 0) {
+		for (cpp_int i = 1; i <= numerator; ++i) {
+			if (numerator % i == 0) factors.push_back(i);
+		}
+	}
+	else {
+		for (cpp_int i = -1; i >= numerator; --i) {
+			if (numerator % i == 0) factors.push_back(i);
+		}
+	}
+	return factors;
+}
+
+bool Rational::isInteger() const {
+	return denominator == 1;
 }

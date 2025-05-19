@@ -102,7 +102,7 @@ Polynomial determinantBareiss(const matrix& input) {
 		return mat[n - 1][n - 1] * sign;
 	}
 	catch (const std::exception& e) {
-		std::cout << e.what() << std::endl;
+		std::cout << "Bareis error" << e.what() << std::endl;
 	}
 }
 
@@ -268,8 +268,8 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& ot
 	MatrixXp eigenMat = convertToEigen(sylvester);
 	Polynomial f3 = determinantEigen(eigenMat);
 
-	Polynomial f3test = determinantBareiss(sylvester);
-	std::cout << (f3 == f3test) << std::endl;
+	//Polynomial f3test = determinantBareiss(sylvester);
+	//std::cout << (f3 == f3test) << std::endl;
 
 	std::vector<Polynomial> sturm;
 	if (f3.sturm_sequence.empty()) {
@@ -333,15 +333,16 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*(const RealAlgebraicNumber& ot
 	MatrixXp eigenMat = convertToEigen(sylvester);
 	Polynomial f3 = determinantEigen(eigenMat);
 
-	Polynomial f3test = determinantBareiss(sylvester);
-	std::cout << (f3 == f3test) << std::endl;
+	//Polynomial f3test = determinantBareiss(sylvester);
+	//std::cout << (f3 == f3test) << std::endl;
+
 	/*std::vector<Rational> f3Coeff = determinant2(sylvester);
 	Polynomial f3 = {f3Coeff};*/
 	//f3.normalize();
 
 	//Polynomial test = {0,0,0,0,0,0,1,0,0,1};
 	//Polynomial test = { -729,0,0,0,0,0,1 };
-	Polynomial test = {6, 0, -5, 0, 1};
+	//Polynomial test = {6, 0, -5, 0, 1};
 	//test.normalize();
 	//test.testNormalize();
 
@@ -630,8 +631,10 @@ void RealAlgebraicNumber::testOperators() {
 	std::cout << a.inverse().toString() << std::endl;
 	std::cout << c.inverse().toString() << std::endl;
 
-	if (a.inverse() != invA || c.inverse() != invC) // TODO: a.inverse().inverse() == a (factoring not complete)
+	if (a.inverse() != invA || c.inverse() != invC)
 		std::cout << "inverse() not working!\n";
+	if (a.inverse().inverse() != a || c.inverse().inverse() != c) // TODO: a.inverse().inverse() == a (factoring not complete)
+		std::cout << "double inverse() not working!\n";
 	if (a.sqrt() != c || b.sqrt() != d)
 		std::cout << "sqrt() not working!\n";
 	if (c.pow(2) != a || d.pow(2) != b)

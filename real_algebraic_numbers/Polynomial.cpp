@@ -2,6 +2,9 @@
 #include <iostream>
 #include <numeric>
 #include <boost/multiprecision/cpp_int.hpp>
+#include <NTL/ZZX.h>
+#include <NTL/ZZXFactoring.h>
+using namespace NTL;
 //#include <fmpz_poly.h>
 //#include <fmpz_poly_factor.h>
 
@@ -338,8 +341,46 @@ static std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
 	return result;
 }
 
+std::vector<Polynomial> minimal_polynomials_ntl(const Polynomial& poly)
+{
+	ZZX f;
+	f.SetMaxLength(poly.coefficients.size());
+
+	for (long i = 0; i < (long)poly.coefficients.size(); ++i) {
+		SetCoeff(f, i, to_ZZ(poly.coefficients[i].toInt()));
+	}
+
+	Vec< Pair<ZZX, long> > factors;
+	ZZ content;
+	factor(content, factors, f);
+
+	// convert 'factors' to vector of Polynomials
+	std::vector<Polynomial> result;
+	for (long i = 0; i < factors.length(); ++i) {
+		ZZX factor = factors[i].a;
+		std::vector<Rational> coeffs;
+		coeffs.reserve(factor.rep.length());
+		for (long j = 0; j < factor.rep.length(); ++j) {
+			coeffs.emplace_back(to_int(factor.rep[j]));
+		}
+		result.emplace_back(coeffs);
+	}
+
+	return result;
+
+	// print poly
+	//std::cout << "Polynomial: " << poly.toString() << "\nfactors into:\n";
+
+	/*for (auto& p : factors) {
+		std::cout << p.a << "^" << p.b << " ";
+	}
+	std::cout << "\n";*/
+}
+
 void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBound) {
 	if (is_normalized) return;
+
+	//std::cout << "Polynomial: " << toString() << "\t";
 
 	while (coefficients.size() > 1 && coefficients.back() == 0) {
 		coefficients.pop_back();
@@ -365,7 +406,9 @@ void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBoun
 	//    }
 	//}
 
-	const std::vector<Polynomial> minimalPolys = get_minimal_polynomials(*this);
+	std::vector<Polynomial> minimalPolys = minimal_polynomials_ntl(*this);
+
+	// minimalPolys = get_minimal_polynomials(*this);
 	//std::cout << "\n\nMinimal Polynomial of " << toString() << "\n";
 	for (const Polynomial& poly : minimalPolys) {
 		//std::cout << "\t" << poly.toString() << '\n';
@@ -394,6 +437,8 @@ void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBoun
 	//    std::cout << coeff.toInts() << " ";
 	//}
 	//std::cout << "\n";
+
+	//std::cout << toString() << "\n";
 
 	is_normalized = true;
 	//return minimalPolys;

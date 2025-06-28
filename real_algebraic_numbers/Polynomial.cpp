@@ -7,6 +7,7 @@
 using namespace NTL;
 //#include <fmpz_poly.h>
 //#include <fmpz_poly_factor.h>
+#include "MyTimer.h"
 
 Polynomial::Polynomial(const std::initializer_list<int> coeffs) {
 	for (auto it = coeffs.begin(); it < coeffs.end(); ++it) {
@@ -30,6 +31,7 @@ Polynomial::Polynomial(int zeroCoeff) {
 }
 
 static Rational findGCD(const std::vector<Rational>& arr) {
+	PROFILE_FUNCTION
 	Rational res = arr[0];
 
 	for (int i = 1; i < arr.size(); i++) {
@@ -42,6 +44,7 @@ static Rational findGCD(const std::vector<Rational>& arr) {
 }
 
 static bool isPerfectCube(const int n) {
+	PROFILE_FUNCTION
 	if (n == 0) {
 		return true;
 	}
@@ -65,6 +68,7 @@ static bool isPerfectCube(const int n) {
 
 // Helper to calculate integer roots via Rational Root Theorem
 static std::vector<int> getPossibleRoots(const std::vector<Rational>& poly) {
+	PROFILE_FUNCTION
 	std::vector<int> roots;
 	if (poly.empty()) return roots;
 
@@ -104,6 +108,7 @@ static std::vector<int> getPossibleRoots(const std::vector<Rational>& poly) {
 
 // Helper to perform synthetic division
 static std::vector<Rational> syntheticDivide(const std::vector<Rational>& poly, const int root) {
+	PROFILE_FUNCTION
 	std::vector<Rational> quotient;
 	if (poly.empty()) return quotient;
 
@@ -188,11 +193,12 @@ static std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
 					int halvedExponent1 = nonZeroTerms[0].second / 2;
 					int halvedExponent2 = nonZeroTerms[1].second / 2;
 					std::vector<Rational> diffOfSquaresCoeffs1;
-					diffOfSquaresCoeffs1.resize(std::max(halvedExponent1, halvedExponent2) + 1, 0);
+					int largestHalvedExponent = halvedExponent1 > halvedExponent2 ? halvedExponent1 : halvedExponent2;
+					diffOfSquaresCoeffs1.resize(largestHalvedExponent + 1, 0);
 					diffOfSquaresCoeffs1[halvedExponent1] = sqrtCoeff1;
 					diffOfSquaresCoeffs1[halvedExponent2] = sqrtCoeff2;
 					std::vector<Rational> diffOfSquaresCoeffs2;
-					diffOfSquaresCoeffs2.resize(std::max(halvedExponent1, halvedExponent2) + 1, 0);
+					diffOfSquaresCoeffs2.resize(largestHalvedExponent + 1, 0);
 					diffOfSquaresCoeffs2[halvedExponent1] = -sqrtCoeff1;
 					diffOfSquaresCoeffs2[halvedExponent2] = sqrtCoeff2;
 
@@ -228,12 +234,14 @@ static std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
 					a = (coeff2 < 0) ? -a : a;
 
 					std::vector<Rational> sumOfCubesCoeffs1;
-					sumOfCubesCoeffs1.resize(std::max(halvedExponent1, halvedExponent2) + 1, 0);
+					int largestHalvedExponent = halvedExponent1 > halvedExponent2 ? halvedExponent1 : halvedExponent2;
+					sumOfCubesCoeffs1.resize(largestHalvedExponent + 1, 0);
 					sumOfCubesCoeffs1[halvedExponent1] = b;
 					sumOfCubesCoeffs1[halvedExponent2] = a;
 
 					std::vector<Rational> sumOfCubesCoeffs2;
-					sumOfCubesCoeffs2.resize(std::max(halvedExponent1 * 2, halvedExponent2 * 2) + 1, 0);
+					int largestHalvedExponent2 = (halvedExponent1*2) > (halvedExponent2*2) ? (halvedExponent1*2) : (halvedExponent2*2);
+					sumOfCubesCoeffs2.resize(largestHalvedExponent2 + 1, 0);
 					sumOfCubesCoeffs2[halvedExponent1 * 2] = std::pow(b, 2);
 					sumOfCubesCoeffs2[halvedExponent2 * 2] = std::pow(a, 2);
 					int middleTerm = coeff1 < 0 ? a * b : -a * b;
@@ -343,6 +351,7 @@ static std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
 
 std::vector<Polynomial> minimal_polynomials_ntl(const Polynomial& poly)
 {
+	PROFILE_FUNCTION
 	ZZX f;
 	f.SetMaxLength(poly.coefficients.size());
 
@@ -378,6 +387,7 @@ std::vector<Polynomial> minimal_polynomials_ntl(const Polynomial& poly)
 }
 
 void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBound) {
+	PROFILE_FUNCTION
 	if (is_normalized) return;
 
 	//std::cout << "Polynomial: " << toString() << "\t";
@@ -552,6 +562,7 @@ bool Polynomial::isZero() const {
 }
 
 Polynomial Polynomial::operator+(const Polynomial& other) const {
+	PROFILE_FUNCTION
 	std::vector<Rational> result = coefficients;
 	for (size_t i = 0; i < other.coefficients.size(); i++) {
 		while (result.size() <= i) result.emplace_back(0);
@@ -561,6 +572,7 @@ Polynomial Polynomial::operator+(const Polynomial& other) const {
 }
 
 Polynomial Polynomial::operator-(const Polynomial& other) const {
+	PROFILE_FUNCTION
 	std::vector<Rational> result = coefficients;
 	for (size_t i = 0; i < other.coefficients.size(); i++) {
 		while (result.size() <= i) result.emplace_back(0);
@@ -570,6 +582,7 @@ Polynomial Polynomial::operator-(const Polynomial& other) const {
 }
 
 Polynomial Polynomial::operator*(const Polynomial& other) const {
+	PROFILE_FUNCTION
 	Polynomial result;
 	for (size_t i = 0; i < coefficients.size(); i++) {
 		for (size_t j = 0; j < other.coefficients.size(); j++) {
@@ -586,6 +599,7 @@ Polynomial Polynomial::operator*(const Polynomial& other) const {
 }
 
 Polynomial Polynomial::operator/(const Polynomial& other) const {
+	PROFILE_FUNCTION
 	if (other.isZero()) {
 		throw std::runtime_error("Division by zero polynomial!");
 	}
@@ -597,6 +611,7 @@ Polynomial Polynomial::operator/(const Polynomial& other) const {
 }
 
 bool Polynomial::operator==(const Polynomial& other) const {
+	PROFILE_FUNCTION
 	if (degree != other.degree) return false;
 
 	for (size_t i = 0; i < coefficients.size(); i++) {
@@ -606,6 +621,7 @@ bool Polynomial::operator==(const Polynomial& other) const {
 }
 
 std::string Polynomial::toString() const {
+	PROFILE_FUNCTION
 	if (coefficients.empty()) return "0";
 	std::string output;
 	const int coeffLength = static_cast<int>(coefficients.size());
@@ -626,6 +642,7 @@ void Polynomial::print() const {
 }
 
 Rational Polynomial::evaluate(const Rational& x) const {
+	PROFILE_FUNCTION
 	Rational result = 0;
 	const int coeffLength = static_cast<int>(coefficients.size());
 	for (int i = coeffLength - 1; i >= 0; --i) {
@@ -635,6 +652,7 @@ Rational Polynomial::evaluate(const Rational& x) const {
 }
 
 Polynomial Polynomial::derivative() const {
+	PROFILE_FUNCTION
 	if (isZero()) return {};
 	std::vector<Rational> result(degree, 0);
 	for (int i = 1; i <= degree; ++i) {
@@ -644,6 +662,7 @@ Polynomial Polynomial::derivative() const {
 }
 
 Polynomial Polynomial::polyTrim(const Polynomial& poly) {
+	PROFILE_FUNCTION
 	Polynomial result = poly;
 	while (!result.coefficients.empty() && result.coefficients.back().abs() < 1e-9) {
 		result.coefficients.pop_back();
@@ -653,7 +672,9 @@ Polynomial Polynomial::polyTrim(const Polynomial& poly) {
 }
 
 std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(
-	const Polynomial& dividend, const Polynomial& divisor) {
+	const Polynomial& dividend, const Polynomial& divisor)
+{
+	PROFILE_FUNCTION
 	const Polynomial a = polyTrim(dividend);
 	const Polynomial b = polyTrim(divisor);
 
@@ -695,6 +716,7 @@ std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(
 }
 
 std::vector<Rational> Polynomial::polyNegate(const std::vector<Rational>& poly) {
+	PROFILE_FUNCTION
 	std::vector<Rational> neg(poly.size());
 	for (size_t i = 0; i < poly.size(); i++) {
 		neg[i] = -poly[i];
@@ -703,6 +725,7 @@ std::vector<Rational> Polynomial::polyNegate(const std::vector<Rational>& poly) 
 }
 
 Polynomial Polynomial::reflectY() const {
+	PROFILE_FUNCTION
 	std::vector<Rational> result = coefficients;
 	const int coeffLength = static_cast<int>(result.size());
 	for (int i = coeffLength - 1; i >= 0; i--) {
@@ -715,6 +738,7 @@ Polynomial Polynomial::reflectY() const {
 
 // Generate the Sturm sequence
 std::vector<Polynomial> Polynomial::sturmSequence(const Polynomial& p) {
+	PROFILE_FUNCTION
 	std::vector<Polynomial> seq;
 
 	const Polynomial s0 = polyTrim(p);

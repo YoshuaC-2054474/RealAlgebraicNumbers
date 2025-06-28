@@ -100,6 +100,7 @@ public:
 	int getDegree() const;
 
 	std::string toString() const;
+	std::string toDecimalString(int precision = 10) const;
 
 	static void testOperators();
 

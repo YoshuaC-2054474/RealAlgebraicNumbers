@@ -4,10 +4,13 @@
 #include <iostream>
 #include <Eigen/Dense>
 
+#include "MyTimer.h"
+
 using matrix = std::vector<std::vector<Polynomial>>;
 using MatrixXp = Eigen::Matrix<Polynomial, Eigen::Dynamic, Eigen::Dynamic>;
 
 MatrixXp convertToEigen(const matrix& mat) {
+	PROFILE_FUNCTION
 	int n = mat.size();
 	MatrixXp eigenMat(n, n);
 	for (int i = 0; i < n; ++i)
@@ -17,6 +20,7 @@ MatrixXp convertToEigen(const matrix& mat) {
 }
 
 static Polynomial determinantEigen(const MatrixXp& mat) {
+	PROFILE_FUNCTION
 	/*const int n = static_cast<int>(mat.size());
 	if (n == 1) return mat[0][0];
 
@@ -60,6 +64,7 @@ static Polynomial determinantEigen(const MatrixXp& mat) {
 }
 
 Polynomial determinantBareiss(const matrix& input) {
+	PROFILE_FUNCTION
 	try {
 		int n = input.size();
 		if (n == 0) return Polynomial(0); // Handle empty matrix
@@ -107,9 +112,11 @@ Polynomial determinantBareiss(const matrix& input) {
 }
 
 static int binom(const int n, int k) {
+	PROFILE_FUNCTION
 	int result = 1;
 	if (k > n) return 0;
-	k = std::min(k, n - k);
+	k = k < (n - k) ? k : (n - k);
+	//k = std::min(k, n - k);
 	for (int i = 1; i <= k; i++) {
 		result = result * (n - i + 1) / i;
 	}
@@ -117,6 +124,7 @@ static int binom(const int n, int k) {
 }
 
 static std::vector<Polynomial> poly_x_minus_y(const Polynomial& f) {
+	PROFILE_FUNCTION
 	const int n = f.degree; // degree of f(x)
 	// result[j] will be a polynomial in x corresponding to the coefficient of y^j.
 	std::vector<Polynomial> result(n + 1);
@@ -139,6 +147,7 @@ static std::vector<Polynomial> poly_x_minus_y(const Polynomial& f) {
 }
 
 static std::vector<Polynomial> poly_x_over_y(const Polynomial& f) {
+	PROFILE_FUNCTION
 	const int n = f.degree; // degree of f
 	// We will have (n+1) polynomials: one for each power of y, from y^0 up to y^n.
 	// For j = n-i, the corresponding polynomial in x is the monomial f[i]*x^i.
@@ -157,6 +166,7 @@ static std::vector<Polynomial> poly_x_over_y(const Polynomial& f) {
 }
 
 static matrix createSylvesterMatrix(const std::vector<Polynomial>& fSub, const Polynomial& g) {
+	PROFILE_FUNCTION
 	const int m = static_cast<int>(fSub.size()) - 1;
 	const int n = g.degree;
 	const int matrixSize = m + n;
@@ -249,6 +259,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const double value) {
 //}
 
 static void printSylvester(const matrix& sylvester) {
+	PROFILE_FUNCTION
 	for (const std::vector<Polynomial>& i : sylvester) {
 		for (const Polynomial& j : i) {
 			std::cout << j.toString() << " | ";
@@ -258,6 +269,7 @@ static void printSylvester(const matrix& sylvester) {
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
 
@@ -298,15 +310,18 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+(const RealAlgebraicNumber& ot
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator-(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	const RealAlgebraicNumber temp = -other;
 	return *this + temp;
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator-() const {
+	PROFILE_FUNCTION
 	return {polynomial.reflectY(), -interval.upper_bound, -interval.lower_bound};
 }
 
 static Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
+	PROFILE_FUNCTION
 	Rational min = r1;
 	if (r2 < min) min = r2;
 	if (r3 < min) min = r3;
@@ -315,6 +330,7 @@ static Rational minRational(const Rational& r1, const Rational& r2, const Ration
 }
 
 static Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
+	PROFILE_FUNCTION
 	Rational max = r1;
 	if (r2 > max) max = r2;
 	if (r3 > max) max = r3;
@@ -323,8 +339,13 @@ static Rational maxRational(const Rational& r1, const Rational& r2, const Ration
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator*(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
+
+	// make sure they are normalised
+	otherCopy.polynomial.normalize(otherCopy.interval.lower_bound, otherCopy.interval.upper_bound);
+	thisCopy.polynomial.normalize(thisCopy.interval.lower_bound, thisCopy.interval.upper_bound);
 
 	const std::vector<Polynomial> fXoverY = poly_x_over_y(thisCopy.polynomial);
 	const matrix sylvester = createSylvesterMatrix(fXoverY, otherCopy.polynomial);
@@ -399,11 +420,13 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*(const RealAlgebraicNumber& ot
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator/(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	const RealAlgebraicNumber temp = other.inverse();
 	return *this * temp;
 }
 
 bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	// make both polynomials minimal
 	// if minimal polynomials are not equal, return false
 	// if minimal polynomials are equal, check if intervals overlap
@@ -442,10 +465,12 @@ bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	return !(*this == other);
 }
 
 bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
 
@@ -466,18 +491,22 @@ bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator>(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	return other < *this;
 }
 
 bool RealAlgebraicNumber::operator<=(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	return !(*this > other);
 }
 
 bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& other) const {
+	PROFILE_FUNCTION
 	return !(*this < other);
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
+	PROFILE_FUNCTION
 	std::vector<Rational> inverseCo(polynomial.coefficients.rbegin(), polynomial.coefficients.rend());
 	Rational inverseLower = interval.upper_bound.inverse();
 	Rational inverseUpper = interval.lower_bound.inverse();
@@ -485,6 +514,7 @@ RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) {
+	PROFILE_FUNCTION
 	// 1. Check Non-Negativity (for even n): If n is even, ensure the algebraic number is non-negative.
 	// If it is negative, the n-th root is not real and the operation is undefined.
 	// 2. Construct the New Polynomial: For the given polynomial p(x) and the root a,
@@ -548,8 +578,9 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) {
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
+	PROFILE_FUNCTION
 	if (n == 0) {
-		std::vector<Rational> coefficients = {1};
+		std::vector<Rational> coefficients = {-1,1};
 		return {coefficients, 0.99, 1.01};
 	}
 	//if (n == 1) return *this;
@@ -562,6 +593,7 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 }
 
 void RealAlgebraicNumber::testOperators() {
+	PROFILE_FUNCTION
 	RealAlgebraicNumber a = 2;
 	RealAlgebraicNumber b = 3;
 	auto c = RealAlgebraicNumber({-2, 0, 1}, {.lower_bound = {1, 1}, .upper_bound = {2, 1}}); // sqrt(2)
@@ -648,6 +680,7 @@ void RealAlgebraicNumber::testOperators() {
 }
 
 int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequence) {
+	PROFILE_FUNCTION
 	int variations = 0;
 	int prevSign = 0;
 
@@ -664,6 +697,7 @@ int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequen
 }
 
 Rational RealAlgebraicNumber::evaluatePoly(const std::vector<Rational>& sequence, const Rational& x) {
+	PROFILE_FUNCTION
 	Rational result = 0;
 	const int seqSize = static_cast<int>(sequence.size());
 	for (int i = seqSize - 1; i >= 0; i--) {
@@ -673,6 +707,7 @@ Rational RealAlgebraicNumber::evaluatePoly(const std::vector<Rational>& sequence
 }
 
 int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, const Rational& x) {
+	PROFILE_FUNCTION
 	std::vector<Rational> evaluations;
 	evaluations.reserve(sturm.size());
 
@@ -684,6 +719,7 @@ int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, co
 }
 
 void RealAlgebraicNumber::normalize() {
+	PROFILE_FUNCTION
 	Rational fInf = 0;
 	for (const Rational& coeff : polynomial.coefficients) {
 		if (fInf < coeff.abs())
@@ -719,6 +755,7 @@ void RealAlgebraicNumber::normalize() {
 }
 
 void RealAlgebraicNumber::refine() {
+	PROFILE_FUNCTION
 	std::vector<Polynomial> sturm;
 	if (polynomial.sturm_sequence.empty()) {
 		sturm = polynomial.sturmSequence(polynomial);
@@ -740,6 +777,7 @@ void RealAlgebraicNumber::refine() {
 }
 
 std::string RealAlgebraicNumber::toString() const {
+	PROFILE_FUNCTION
 	/*Rational prevLower = interval.lower_bound;
 	Rational prevUpper = interval.upper_bound;
 	while (true) {
@@ -760,4 +798,48 @@ std::string RealAlgebraicNumber::toString() const {
 	output += std::to_string(upper);
 
 	return output;
+}
+
+std::string RealAlgebraicNumber::toDecimalString(int precision) const
+{
+	PROFILE_FUNCTION
+	if (this->polynomial.degree == 1)
+	{
+		Rational zeroth_coeff = this->polynomial.coefficients[0];
+		return (zeroth_coeff*-1).toDecimalString(0);
+	}
+	
+	RealAlgebraicNumber temp = *this;
+
+	while (true)
+	{
+		std::string lower_string = temp.interval.lower_bound.toDecimalString(precision);
+		std::string upper_string = temp.interval.upper_bound.toDecimalString(precision);
+
+		// only keeping part after '.'
+		std::string lower_string_decimal = lower_string.substr(lower_string.find('.')+1);
+		std::string upper_string_decimal = upper_string.substr(upper_string.find('.')+1);
+
+		int matchingNumbers = 0;
+		for (size_t i = 0; i < lower_string_decimal.size(); i++ )
+		{
+			if (lower_string_decimal[i] == upper_string_decimal[i])
+			{
+				matchingNumbers++;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if (matchingNumbers >= precision)
+		{
+			// remove trailing zeros
+			lower_string.erase(lower_string.find_last_not_of('0') + 1);
+			return lower_string;
+		}
+
+		temp.refine();
+	}
 }

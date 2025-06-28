@@ -18,6 +18,7 @@ public:
 	Rational(const Rational& other);
 
 	std::string toString() const;
+	std::string toDecimalString(int precision) const;
 	void print() const;
 
 	int toInt() const {
@@ -34,20 +35,26 @@ public:
 		return numerator.convert_to<double>() / denominator.convert_to<double>();
 	}
 
-	Rational operator+(const Rational& other) const;
+	/*Rational operator+(const Rational& other) const;
 	Rational operator-(const Rational& other) const;
 	friend Rational operator-(const cpp_int& lsh, const Rational& other);
-	Rational operator-() const;
+	
 	Rational operator*(const Rational& other) const;
 	friend Rational operator*(const cpp_int& lsh, const Rational& other);
 	Rational operator/(const Rational& other) const;
-	friend Rational operator/(const cpp_int& lsh, const Rational& other);
+	friend Rational operator/(const cpp_int& lsh, const Rational& other);*/
 	Rational operator%(const Rational& other) const;
 
 	Rational& operator+=(const Rational& other);
 	Rational& operator-=(const Rational& other);
 	Rational& operator*=(const Rational& other);
 	Rational& operator/=(const Rational& other);
+
+	friend Rational operator+(Rational lhs, const Rational& rhs);
+	friend Rational operator-(Rational lhs, const Rational& rhs);
+	Rational operator-() const;
+	friend Rational operator*(Rational lhs, const Rational& rhs);
+	friend Rational operator/(Rational lhs, const Rational& rhs);
 
 	bool operator==(const Rational& other) const;
 	bool operator!=(const Rational& other) const;
@@ -66,6 +73,8 @@ public:
 private:
 	cpp_int numerator;
 	cpp_int denominator;
+
+	void simplify();
 
 	//static cpp_int computeGcd(const cpp_int a, const cpp_int b);
 };

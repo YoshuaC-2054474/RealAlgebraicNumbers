@@ -4,26 +4,36 @@
 #include <sstream>
 #include <numeric>
 
-Rational::Rational(const cpp_int& num, const cpp_int& den) {
-	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
-	const cpp_int g = boost::multiprecision::gcd(num, den);
-	numerator = num / g;
-	denominator = den / g;
+#include "MyTimer.h"
+
+void Rational::simplify()
+{
+	PROFILE_FUNCTION
+	if (denominator == 0) {
+		throw std::invalid_argument("Denominator cannot be zero");
+	}
+	const cpp_int g = boost::multiprecision::gcd(numerator, denominator);
+	numerator /= g;
+	denominator /= g;
+
 	if (denominator < 0) {
 		numerator = -numerator;
 		denominator = -denominator;
 	}
 }
 
+Rational::Rational(const cpp_int& num, const cpp_int& den) {
+	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
+	numerator = num;
+	denominator = den;
+	simplify();
+}
+
 Rational::Rational(const int num, const int den) {
 	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
-	const int g = std::gcd(num, den);
-	numerator = num / g;
-	denominator = den / g;
-	if (denominator < 0) {
-		numerator = -numerator;
-		denominator = -denominator;
-	}
+	numerator = cpp_int(num);
+	denominator = cpp_int(den);
+	simplify();
 }
 
 Rational::Rational(const cpp_int& numerator) {
@@ -37,6 +47,7 @@ Rational::Rational(const int numerator) {
 }
 
 Rational::Rational(const double numer, const cpp_int& maxDenominator) {
+	PROFILE_FUNCTION
 	if (maxDenominator <= 0) {
 		throw std::invalid_argument("Max denominator must be positive");
 	}
@@ -77,10 +88,7 @@ Rational::Rational(const double numer, const cpp_int& maxDenominator) {
 	numerator = sign * h[2];
 	denominator = k[2];
 
-	// Simplify
-	const cpp_int g = boost::multiprecision::gcd(numerator, denominator);
-	numerator /= g;
-	denominator /= g;
+	simplify();
 }
 
 Rational::Rational(const float numer) : Rational(static_cast<double>(numer)) {}
@@ -88,8 +96,72 @@ Rational::Rational(const float numer) : Rational(static_cast<double>(numer)) {}
 Rational::Rational(const Rational& other) = default;
 
 std::string Rational::toString() const {
+	PROFILE_FUNCTION
 	if (denominator == 1) return numerator.str();
 	return numerator.str() + "/" + denominator.str();
+}
+
+std::string Rational::toDecimalString(int precision) const
+{
+	PROFILE_FUNCTION
+	if (precision < 0) {
+		throw std::invalid_argument("Precision must be non-negative.");
+	}
+
+	cpp_int num = this->numerator;
+	cpp_int den = this->denominator;
+
+	// --- 1. Handle the sign ---
+	// The final result is negative if numerator and denominator have opposite signs.
+	// We then proceed with positive numbers for the calculation.
+	std::string sign_str = "";
+	if (num < 0) {
+		sign_str = "-";
+		num *= -1;
+	}
+
+	// --- 2. Calculate the integer part ---
+	cpp_int integer_part = num / den;
+
+	// --- 3. Calculate the initial remainder for the fractional part ---
+	cpp_int remainder = num % den;
+
+	// If there is no remainder, the number is an integer.
+	if (remainder == 0) {
+		return sign_str + integer_part.str() + (precision > 0 ? "." + std::string(precision, '0') : "");
+	}
+
+	// --- 4. Calculate the fractional part ---
+	std::string fractional_str = "";
+
+	// Loop for each decimal place required.
+	for (int i = 0; i < precision; ++i) {
+		// "Bring down a zero" by multiplying the remainder by 10.
+		remainder *= 10;
+
+		// The next digit is the integer result of dividing the new remainder by the denominator.
+		cpp_int digit = remainder / den;
+		fractional_str += digit.str();
+
+		// The new remainder is what's left over.
+		remainder %= den;
+
+		// Optimization: If remainder becomes 0, the decimal terminates.
+		// We can just pad with zeros and finish early.
+		if (remainder == 0) {
+			fractional_str += std::string(precision - i - 1, '0');
+			break;
+		}
+	}
+
+	// --- 5. Combine and return the result ---
+	if (precision == 0) {
+		// Note: Standard rounding would be applied here if needed.
+		// This implementation simply truncates.
+		return sign_str + integer_part.str();
+	}
+
+	return sign_str + integer_part.str() + "." + fractional_str;
 }
 
 void Rational::print() const {
@@ -97,48 +169,49 @@ void Rational::print() const {
 }
 
 // Arithmetic Operators
-Rational Rational::operator+(const Rational& other) const {
-	cpp_int num = numerator * other.denominator + other.numerator * denominator;
-	cpp_int den = denominator * other.denominator;
-	return {num, den};
-}
-
-Rational Rational::operator-(const Rational& other) const {
-	cpp_int num = numerator * other.denominator - other.numerator * denominator;
-	cpp_int den = denominator * other.denominator;
-	return {num, den};
-}
-
-Rational operator-(const cpp_int& lsh, const Rational& other) {
-	return Rational(lsh) - other;
-}
-
-Rational Rational::operator-() const {
-	return {-numerator, denominator};
-}
-
-Rational Rational::operator*(const Rational& other) const {
-	cpp_int num = numerator * other.numerator;
-	cpp_int den = denominator * other.denominator;
-	return {num, den};
-}
-
-Rational operator*(const cpp_int& lsh, const Rational& other) {
-	return Rational(lsh) * other;
-}
-
-Rational Rational::operator/(const Rational& other) const {
-	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
-	cpp_int num = numerator * other.denominator;
-	cpp_int den = denominator * other.numerator;
-	return {num, den};
-}
-
-Rational operator/(const cpp_int& lsh, const Rational& other) {
-	return Rational(lsh) / other;
-}
-
+//Rational Rational::operator+(const Rational& other) const {
+//	Rational result = *this;
+//	result += other;
+//	return result;
+//}
+//
+//Rational Rational::operator-(const Rational& other) const {
+//	cpp_int num = numerator * other.denominator - other.numerator * denominator;
+//	cpp_int den = denominator * other.denominator;
+//	return {num, den};
+//}
+//
+//Rational operator-(const cpp_int& lsh, const Rational& other) {
+//	return Rational(lsh) - other;
+//}
+//
+//Rational Rational::operator-() const {
+//	return {-numerator, denominator};
+//}
+//
+//Rational Rational::operator*(const Rational& other) const {
+//	cpp_int num = numerator * other.numerator;
+//	cpp_int den = denominator * other.denominator;
+//	return {num, den};
+//}
+//
+//Rational operator*(const cpp_int& lsh, const Rational& other) {
+//	return Rational(lsh) * other;
+//}
+//
+//Rational Rational::operator/(const Rational& other) const {
+//	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
+//	cpp_int num = numerator * other.denominator;
+//	cpp_int den = denominator * other.numerator;
+//	return {num, den};
+//}
+//
+//Rational operator/(const cpp_int& lsh, const Rational& other) {
+//	return Rational(lsh) / other;
+//}
+//
 Rational Rational::operator%(const Rational& other) const {
+	PROFILE_FUNCTION
 	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
 	const cpp_int num = numerator * other.denominator;
 	cpp_int den = denominator * other.numerator;
@@ -147,63 +220,116 @@ Rational Rational::operator%(const Rational& other) const {
 
 // Assignment Operators
 Rational& Rational::operator+=(const Rational& other) {
-	*this = *this + other;
+	PROFILE_FUNCTION
+	numerator = numerator * other.denominator + other.numerator * denominator;
+	denominator = denominator * other.denominator;
+	simplify();
 	return *this;
 }
 
 Rational& Rational::operator-=(const Rational& other) {
-	*this = *this - other;
+	PROFILE_FUNCTION
+	numerator = numerator * other.denominator - other.numerator * denominator;
+	denominator = denominator * other.denominator;
+	simplify();
 	return *this;
 }
 
 Rational& Rational::operator*=(const Rational& other) {
-	*this = *this * other;
+	PROFILE_FUNCTION
+	numerator = numerator * other.numerator;
+	denominator = denominator * other.denominator;
+	simplify();
 	return *this;
 }
 
 Rational& Rational::operator/=(const Rational& other) {
-	*this = *this / other;
+	PROFILE_FUNCTION
+	if (other.numerator == 0) {
+		throw std::overflow_error("Division by zero (rational number has zero numerator).");
+	}
+	numerator = numerator * other.denominator;
+	denominator = denominator * other.numerator;
+	simplify();
 	return *this;
+}
+
+Rational operator+(Rational lhs, const Rational& rhs) {
+	PROFILE_FUNCTION
+	lhs += rhs;
+	return lhs;
+}
+
+Rational operator-(Rational lhs, const Rational& rhs) {
+	PROFILE_FUNCTION
+	lhs -= rhs;
+	return lhs;
+}
+
+Rational Rational::operator-() const {
+	PROFILE_FUNCTION
+	return Rational(-numerator, denominator);
+}
+
+Rational operator*(Rational lhs, const Rational& rhs) {
+	PROFILE_FUNCTION
+	lhs *= rhs;
+	return lhs;
+}
+
+Rational operator/(Rational lhs, const Rational& rhs) {
+	PROFILE_FUNCTION
+	lhs /= rhs;
+	return lhs;
 }
 
 // Comparison Operators
 bool Rational::operator==(const Rational& other) const {
+	PROFILE_FUNCTION
 	return numerator * other.denominator == other.numerator * denominator;
 }
 
 bool Rational::operator!=(const Rational& other) const {
+	PROFILE_FUNCTION
 	return !(*this == other);
 }
 
 bool Rational::operator<(const Rational& other) const {
+	PROFILE_FUNCTION
 	return numerator * other.denominator < other.numerator * denominator;
 }
 
 bool Rational::operator>(const Rational& other) const {
+	PROFILE_FUNCTION
 	return other < *this;
 }
 
 bool Rational::operator<=(const Rational& other) const {
+	PROFILE_FUNCTION
 	return !(*this > other);
 }
 
 bool Rational::operator>=(const Rational& other) const {
+	PROFILE_FUNCTION
 	return !(*this < other);
 }
 
 // Utility Methods
 Rational Rational::abs() const {
+	PROFILE_FUNCTION
 	if (numerator >= 0) return *this;
 	return {-numerator, denominator};
 	//return { mpz_class::abs(numerator), denominator.abs()};
 }
 
 Rational Rational::inverse() const {
+	PROFILE_FUNCTION
 	if (numerator == 0) throw std::invalid_argument("Cannot invert zero");
 	return {denominator, numerator};
 }
 
 double Rational::sqrt(const int n) const {
+	PROFILE_FUNCTION
 	if (n == 0) throw std::invalid_argument("Zeroth root is undefined");
 	if (n % 2 == 0 && numerator < 0)
 		throw std::invalid_argument("Even root of negative number");
@@ -212,6 +338,7 @@ double Rational::sqrt(const int n) const {
 }
 
 Rational Rational::gcd(const Rational& other) const {
+	PROFILE_FUNCTION
 	cpp_int numGcd = boost::multiprecision::gcd(numerator * other.denominator, other.numerator * denominator);
 	cpp_int denLcm = (denominator * other.denominator); // / boost::multiprecision::gcd(denominator, other.denominator);
 	return {numGcd, denLcm};
@@ -224,6 +351,7 @@ Rational Rational::gcd(const Rational& other) const {
 //}
 
 std::vector<cpp_int> Rational::factorNumerator() const {
+	PROFILE_FUNCTION
 	std::vector<cpp_int> factors;
 	//cpp_int num = numerator;
 	//int numInt = num.convert_to<int>();

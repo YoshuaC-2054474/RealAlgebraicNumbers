@@ -3,7 +3,10 @@
 #include <iostream>
 //#include "Polynomial3.h"
 
+#include "MyTimer.h"
+
 int main() {
+	InitializePerformanceFrequency();
 	/*auto a = RealAlgebraicNumber({ -2,1 }, { 1.9,2.1 });
 	auto b = RealAlgebraicNumber({ -3,1 }, { 2.9,3.1 });*/
 	/*auto a = RealAlgebraicNumber({-2,0,1}, {1.4,1.45});
@@ -12,6 +15,8 @@ int main() {
 	auto b = RealAlgebraicNumber({ -3,1,3 }, { {8,10},{85,100} });*/
 	try {
 		RealAlgebraicNumber().testOperators();
+
+
 		/*auto a = RealAlgebraicNumber({ -60,42,-128,256,-12,10 }, { {50,100},{1,1} });
 		auto b = RealAlgebraicNumber({ -3,1,3 }, { {8,10},{85,100} });
 		auto c = a / b;
@@ -66,16 +71,17 @@ int main() {
 		//std::cout << "2/3 = " << div.toString() << std::endl;
 		//std::cout << "inverse(2) = " << two.inverse().toString() << std::endl;
 
-		RealAlgebraicNumber a = 2;
+		/*RealAlgebraicNumber a = 2;
 		RealAlgebraicNumber b = ((a.sqrt() + 2).sqrt() + 2).sqrt();
-		std::cout << "b = " << b.toString() << std::endl;
+		std::cout << "b = " << b.toDecimalString() << std::endl;
 		RealAlgebraicNumber c = ((b.pow(2) - 2).pow(2) - 2).pow(2);
-		std::cout << "c = " << c.toString() << std::endl;
+		std::cout << "c = " << c.toDecimalString() << std::endl;*/
 	}
 	catch (const std::exception& e) {
 		std::cout << e.what() << std::endl;
 	}
 
+	atexit(PrintProfilingReport);
 
 	return 0;
 }

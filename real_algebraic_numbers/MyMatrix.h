@@ -6,6 +6,8 @@
 #include <vector>
 #include <stdexcept>
 
+#include "MyTimer.h"
+
 template <typename T> // T will be Polynomial in our case
 class MyMatrix {
 public:
@@ -39,11 +41,12 @@ public:
 
 	// Bareiss Algorithm for Determinant
 	T determinant() const {
+		PROFILE_FUNCTION
 		if (rows != cols) {
 			throw std::runtime_error("Determinant can only be calculated for square matrices.");
 		}
 
-		int n = rows;
+		const int n = rows;
 		if (n == 0) return T(Rational(1)); // Determinant of an empty matrix is 1
 		if (n == 1) return data[0][0];
 

@@ -15,7 +15,7 @@ public:
 	Rational(long long numerator);
 	Rational(int numerator);
 	Rational(double numer, long long maxDenominator = 1000000);
-	Rational(float numer);
+	Rational(float numerator);
 	Rational(const Rational& other);
 
 	std::string toString() const;

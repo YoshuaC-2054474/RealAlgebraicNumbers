@@ -85,6 +85,10 @@ public:
 	Polynomial reflectY() const;
 
 	std::vector<Polynomial> sturmSequence(const Polynomial& p);
+
+private:
+	friend Rational findGcd(const std::vector<Rational>& arr);
+	friend std::vector<Polynomial> minimalPolynomialsNtl(const Polynomial& poly);
 };
 
 #endif

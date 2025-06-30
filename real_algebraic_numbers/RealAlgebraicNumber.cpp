@@ -2,47 +2,137 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
-#include <Eigen/Dense>
 
 #include "MyTimer.h"
 #include "MyMatrix.h"
 
-using matrix = std::vector<std::vector<Polynomial>>;
-using MatrixXp = Eigen::Matrix<Polynomial, Eigen::Dynamic, Eigen::Dynamic>;
+long long binomialCoeff(const int n, int k) {
+	if (k < 0 || k > n) {
+		return 0;
+	}
+	if (k == 0 || k == n) {
+		return 1;
+	}
+	if (k > n / 2) {
+		// Use symmetry (nCk = nC(n-k)) to reduce calculations
+		k = n - k;
+	}
+	long long res = 1;
+	for (int i = 1; i <= k; ++i) {
+		res = res * (n - i + 1) / i;
+	}
+	return res;
+}
 
-MyMatrix<Polynomial> constructSylvesterMatrixForProduct(
-	const Polynomial& P, // P(x)
-	const Polynomial& Q // Q(y)
-) {
-	int m = P.degree;
-	int n = Q.degree;
+MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const Polynomial& q) {
+	if (p.isZero() || q.isZero()) {
+		// Special handling for zero polynomials: sum would be the other poly or zero.
+		// For resultant, result would typically be zero.
+		return MyMatrix<Polynomial>(0, 0);
+	}
+
+	int m = p.degree;
+	int n = q.degree;
+
+	int matSize = m + n;
+	MyMatrix<Polynomial> sylvester(matSize, matSize);
+
+	// Fill n rows for p(x) (shifted coefficients of p)
+	for (int i = 0; i < n; ++i) {
+		// rows 0 to n-1
+		for (int j = 0; j <= m; ++j) {
+			// p.coeff(j) is a Rational (coefficient of x^j in p).
+			// It becomes a degree 0 Polynomial in z for the matrix entry.
+			sylvester.set_element(i, i + j, Polynomial(p.coeff(j)));
+		}
+	}
+
+	// Fill m rows for G(x) = q(z-x) (shifted coefficients of G)
+	// We need to compute the coefficients of G(x) as polynomials in z.
+	// g_s(z) = Sum_{j=s to n} q_j * binomialCoeff(j, s) * (-1)^s * z^(j-s)
+
+	// Polynomials in x that form rows of G(x) part
+	// Each of these coeff_of_xs[s] is a Polynomial in z.
+	std::vector<Polynomial> coeffs_of_G_in_x(n + 1); // coeffs_of_G_in_x[s] holds g_s(z)
+
+	Polynomial zPoly({Rational(0), Rational(1)}); // Represents the variable 'z'
+
+	for (int s = 0; s <= n; ++s) {
+		// Iterate through powers of x (x^s) for G(x)
+		Polynomial g_s_z_poly; // This will accumulate terms for the coefficient of x^s in G(x)
+
+		for (int j = s; j <= n; ++j) {
+			// Summation over j
+			Rational q_j = q.coeff(j); // Coefficient of y^j in Q(y)
+			if (q_j == 0) continue;
+
+			long long termBinomial = binomialCoeff(j, s);
+			Rational term_minus_one_power = ((s % 2 == 0) ? Rational(1) : Rational(-1));
+
+			// Calculate the Rational coefficient part for this term: q_j * C(j,s) * (-1)^s
+			Rational scalarCoeff = q_j * Rational(termBinomial) * term_minus_one_power;
+
+			// Create the z-polynomial part: z^(j-s)
+			Polynomial z_power_poly;
+			if (j - s == 0) {
+				z_power_poly = Polynomial(Rational(1)); // z^0 = 1
+			}
+			else {
+				// Equivalent to z_poly.power(j-s) but Polynomial class doesn't have power yet.
+				// Manually create polynomial representing z^(j-s)
+				std::vector<Rational> zCoeffs(j - s + 1, Rational(0));
+				zCoeffs[j - s] = Rational(1);
+				z_power_poly = Polynomial(zCoeffs);
+			}
+
+			// Add to g_s_z_poly: scalar_coeff * z_power_poly
+			g_s_z_poly += (z_power_poly * scalarCoeff);
+		}
+		coeffs_of_G_in_x[s] = g_s_z_poly;
+	}
+
+	// Now fill the m rows for G(x) in the Sylvester matrix
+	for (int i = 0; i < m; ++i) {
+		// rows n to n+m-1
+		for (int j = 0; j <= n; ++j) {
+			// coeffs_of_G_in_x[j] is the coefficient of x^j in G(x), which is a Polynomial in z.
+			sylvester.set_element(n + i, i + j, coeffs_of_G_in_x[j]);
+		}
+	}
+	return sylvester;
+}
+
+MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, const Polynomial& q) {
+	PROFILE_FUNCTION
+	const int m = p.degree;
+	const int n = q.degree;
 
 	if (m == -1 || n == -1) {
 		// If one of the polynomials is zero
 		return MyMatrix<Polynomial>(0, 0); // Or handle as appropriate, usually det is 0
 	}
 
-	int mat_size = m + n;
-	MyMatrix<Polynomial> sylvester(mat_size, mat_size);
+	const int matSize = m + n;
+	MyMatrix<Polynomial> sylvester(matSize, matSize);
 
-	// Fill rows for P(x)
-	// The coefficients of P(x) are Rational. We convert them to Polynomials of degree 0 in 'z'.
+	// Fill rows for p(x)
+	// The coefficients of p(x) are Rational. We convert them to Polynomials of degree 0 in 'z'.
 	for (int i = 0; i < n; ++i) {
-		// n rows for P(x)
+		// n rows for p(x)
 		for (int j = 0; j <= m; ++j) {
-			// P.coeff(j) is the coefficient of x^j.
+			// p.coeff(j) is the coefficient of x^j.
 			// In the Sylvester matrix, terms are filled in descending power.
-			// Example: for P(x) = p2 x^2 + p1 x + p0
+			// Example: for p(x) = p2 x^2 + p1 x + p0
 			// Row 0: p2 p1 p0 0 0
 			// Row 1: 0 p2 p1 p0 0
 			// (If m=2, n=3, mat_size=5)
 			// Column index for x^(m-k) in row i is i+k.
-			// Coefficient for x^k is P.coeff(k)
-			sylvester.set_element(i, i + j, Polynomial(P.coeff(j)));
+			// Coefficient for x^k is p.coeff(k)
+			sylvester.set_element(i, i + j, Polynomial(p.coeff(j)));
 		}
 	}
 
-	// Fill rows for Q_zx(x) = x^n * Q(z/x)
+	// Fill rows for Q_zx(x) = x^n * q(z/x)
 	// Q_zx(x) = Sum_{j=0 to n} (q_j * z^j) * x^(n-j)
 	// The coefficient of x^k in Q_zx(x) is q_{n-k} * z^{n-k}.
 	// This requires a Polynomial in 'z' for the coefficient.
@@ -52,7 +142,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForProduct(
 	for (int i = 0; i < m; ++i) {
 		// m rows for Q_zx(x)
 		for (int j = 0; j <= n; ++j) {
-			// j is the original power of y in Q(y)
+			// j is the original power of y in q(y)
 			// The term in Q_zx(x) is (q_j * z^j) * x^(n-j)
 			// So, the coefficient of x^(n-j) is q_j * z^j.
 			// The index of this coefficient in the `coeffs` vector of a Polynomial `P_in_x`
@@ -60,7 +150,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForProduct(
 			// We need to place this at column `i + (n-j)` in the Sylvester matrix.
 
 			// Build the coefficient (a polynomial in 'z'): q_j * z^j
-			Rational q_j = Q.coeff(j); // The j-th coefficient of Q(y)
+			Rational q_j = q.coeff(j); // The j-th coefficient of q(y)
 
 			auto coeff_in_z = Polynomial(Rational(0)); // Start with 0
 			if (q_j != 0) {
@@ -78,27 +168,28 @@ MyMatrix<Polynomial> constructSylvesterMatrixForProduct(
 	return sylvester;
 }
 
-MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& P, int k) {
+MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& p, const int k) {
+	PROFILE_FUNCTION
 	if (k <= 0) {
 		throw std::invalid_argument("Exponent k must be positive for power resultant construction.");
 	}
-	if (P.isZero()) {
+	if (p.isZero()) {
 		return MyMatrix<Polynomial>(0, 0); // Or handle as zero polynomial
 	}
 
-	int m = P.degree;
-	int n = k; // Degree of G(x) = -x^k + z
+	const int m = p.degree;
+	const int n = k; // Degree of G(x) = -x^k + z
 
-	int mat_size = m + n;
-	MyMatrix<Polynomial> sylvester(mat_size, mat_size);
+	const int matSize = m + n;
+	MyMatrix<Polynomial> sylvester(matSize, matSize);
 
-	// Fill n rows for P(x) (shifted coefficients of P)
+	// Fill n rows for p(x) (shifted coefficients of p)
 	for (int i = 0; i < n; ++i) {
 		// rows 0 to n-1
 		for (int j = 0; j <= m; ++j) {
-			// P.coeff(j) is the coefficient of x^j.
-			// Place P.coeff(j) at column i+j in matrix.
-			sylvester.set_element(i, i + j, Polynomial(P.coeff(j)));
+			// p.coeff(j) is the coefficient of x^j.
+			// Place p.coeff(j) at column i+j in matrix.
+			sylvester.set_element(i, i + j, Polynomial(p.coeff(j)));
 			// Polynomial(Rational) creates a degree 0 poly in 'z'
 		}
 	}
@@ -109,7 +200,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& P, int k
 	// G.coeff(0) = z (this is a Polynomial in z, so {Rational(0), Rational(1)} for z^1)
 	// G.coeff(other_idx) = 0
 
-	Polynomial z_poly({Rational(0), Rational(1)}); // Represents the variable 'z' itself
+	const Polynomial zPoly({Rational(0), Rational(1)}); // Represents the variable 'z' itself
 
 	for (int i = 0; i < m; ++i) {
 		// rows n to n+m-1
@@ -122,7 +213,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& P, int k
 			}
 			else if (j == 0) {
 				// Coefficient for x^0 is z
-				G_coeff_at_j = z_poly;
+				G_coeff_at_j = zPoly;
 			}
 			else {
 				// Other coefficients are 0
@@ -135,195 +226,8 @@ MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& P, int k
 	return sylvester;
 }
 
-
-MatrixXp convertToEigen(const matrix& mat) {
-	PROFILE_FUNCTION
-	int n = mat.size();
-	MatrixXp eigenMat(n, n);
-	for (int i = 0; i < n; ++i)
-		for (int j = 0; j < n; ++j)
-			eigenMat(i, j) = mat[i][j];
-	return eigenMat;
-}
-
-static Polynomial determinantEigen(const MatrixXp& mat) {
-	PROFILE_FUNCTION
-	/*const int n = static_cast<int>(mat.size());
-	if (n == 1) return mat[0][0];
-
-	auto det = Polynomial();
-	for (int j = 0; j < n; ++j) {
-		matrix minor;
-		for (int i = 1; i < n; ++i) {
-			std::vector<Polynomial> row;
-			for (int k = 0; k < n; ++k)
-				if (k != j) row.push_back(mat[i][k]);
-			minor.push_back(row);
-		}
-		Polynomial term = mat[0][j] * determinant(minor);
-		if (j % 2) term = term * Polynomial({-1});
-		det += term;
-	}
-	return det;*/
-
-	const int n = mat.rows();
-	if (n == 1) return mat(0, 0);
-
-	Polynomial det;
-	for (int j = 0; j < n; ++j) {
-		// Create minor by excluding row 0 and column j
-		MatrixXp minor(n - 1, n - 1);
-		for (int row = 1; row < n; ++row) {
-			int minor_col = 0;
-			for (int col = 0; col < n; ++col) {
-				if (col != j) {
-					minor(row - 1, minor_col++) = mat(row, col);
-				}
-			}
-		}
-
-		// Recursive call and sign adjustment
-		Polynomial term = mat(0, j) * determinantEigen(minor);
-		if (j % 2) term *= Polynomial({-1}); // Alternate signs
-		det += term;
-	}
-	return det;
-}
-
-Polynomial determinantBareiss(const matrix& input) {
-	PROFILE_FUNCTION
-	try {
-		int n = input.size();
-		if (n == 0) return Polynomial(0); // Handle empty matrix
-
-		matrix mat = input; // Work on a copy
-		Polynomial sign(1); // Track row swap signs
-
-		Polynomial prev_pivot(1); // Initially 1 for division in step 0
-
-		for (int k = 0; k < n; ++k) {
-			// Find a non-zero pivot in column k
-			int pivot_row = -1;
-			for (int i = k; i < n; ++i) {
-				if (mat[i][k] != Polynomial(0)) {
-					pivot_row = i;
-					break;
-				}
-			}
-			if (pivot_row == -1) return Polynomial(0); // Singular matrix
-
-			// Swap rows to bring pivot to diagonal
-			if (pivot_row != k) {
-				std::swap(mat[k], mat[pivot_row]);
-				sign = sign * Polynomial(-1); // Invert sign
-			}
-
-			const Polynomial& pivot = mat[k][k];
-
-			// Eliminate entries below and to the right using Bareiss' formula
-			for (int i = k + 1; i < n; ++i) {
-				for (int j = k + 1; j < n; ++j) {
-					mat[i][j] = (mat[i][j] * pivot - mat[i][k] * mat[k][j]) / prev_pivot;
-				}
-			}
-
-			prev_pivot = pivot; // Update for next iteration
-		}
-
-		// Determinant is the bottom-right element multiplied by the sign
-		return mat[n - 1][n - 1] * sign;
-	}
-	catch (const std::exception& e) {
-		std::cout << "Bareis error" << e.what() << std::endl;
-	}
-}
-
-static int binom(const int n, int k) {
-	PROFILE_FUNCTION
-	int result = 1;
-	if (k > n) return 0;
-	k = k < (n - k) ? k : (n - k);
-	//k = std::min(k, n - k);
-	for (int i = 1; i <= k; i++) {
-		result = result * (n - i + 1) / i;
-	}
-	return result;
-}
-
-static std::vector<Polynomial> poly_x_minus_y(const Polynomial& f) {
-	PROFILE_FUNCTION
-	const int n = f.degree; // degree of f(x)
-	// result[j] will be a polynomial in x corresponding to the coefficient of y^j.
-	std::vector<Polynomial> result(n + 1);
-
-	// For each power j of y (from 0 to n)
-	for (int j = 0; j <= n; j++) {
-		// The polynomial coefficient for y^j has degree (n - j) in x.
-		std::vector<Rational> poly(n - j + 1, 0); // poly[k] will be the coefficient for x^k
-		// Sum contributions from every term in f(x) that contributes to y^j.
-		for (int i = j; i <= n; i++) {
-			// The term from a_i * (x-y)^i:
-			// In the binomial expansion, the y^j term is:
-			//   a_i * (-1)^j * binom(i, j) * x^(i-j) * y^j.
-			const Rational coeff = f.coefficients[i] * ((j % 2 == 0) ? 1 : -1) * binom(i, j);
-			poly[i - j] += coeff;
-		}
-		result[j] = poly;
-	}
-	return result;
-}
-
-static std::vector<Polynomial> poly_x_over_y(const Polynomial& f) {
-	PROFILE_FUNCTION
-	const int n = f.degree; // degree of f
-	// We will have (n+1) polynomials: one for each power of y, from y^0 up to y^n.
-	// For j = n-i, the corresponding polynomial in x is the monomial f[i]*x^i.
-	std::vector<Polynomial> result(n + 1);
-
-	for (int i = 0; i <= n; i++) {
-		const int j = n - i; // j is the power of y
-		// Create a polynomial in x which is a monomial of degree i.
-		// Represented as a vector of length (i+1) with the coefficient for x^i equal to f[i].
-		std::vector<Rational> poly(i + 1, 0);
-		poly[i] = f.coefficients[i];
-		// Place this polynomial in the result corresponding to y^j.
-		result[j] = poly;
-	}
-	return result;
-}
-
-static matrix createSylvesterMatrix(const std::vector<Polynomial>& fSub, const Polynomial& g) {
-	PROFILE_FUNCTION
-	const int m = static_cast<int>(fSub.size()) - 1;
-	const int n = g.degree;
-	const int matrixSize = m + n;
-	matrix sylvesterMatrix;
-
-	for (int i = 0; i < n; i++) {
-		std::vector<Polynomial> row(matrixSize, Polynomial({0}));
-		for (int j = 0; j <= m; j++) {
-			if (i + j < matrixSize) {
-				row[i + j] = fSub[j];
-			}
-		}
-		sylvesterMatrix.push_back(row);
-	}
-
-	for (int i = 0; i < m; i++) {
-		std::vector<Polynomial> row(matrixSize, Polynomial({0}));
-		for (int j = 0; j <= n; j++) {
-			if (i + j < matrixSize) {
-				row[i + j] = (j <= g.degree) ? Polynomial({g.coefficients[j]}) : Polynomial({0});
-			}
-		}
-		sylvesterMatrix.push_back(row);
-	}
-
-	return sylvesterMatrix;
-}
-
 RealAlgebraicNumber::RealAlgebraicNumber()
-	: polynomial({0}), interval({.lower_bound = 0.0, .upper_bound = 0.0}) {}
+	: polynomial({0}), interval({.lowerBound = 0.0, .upperBound = 0.0}) {}
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval)
 //: polynomial(std::move(polynomial)), interval(std::move(interval))
@@ -331,68 +235,49 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Int
 	this->polynomial = polynomial;
 	this->interval = interval;
 	//normalize();
-	while ((this->interval.lower_bound - this->interval.upper_bound).abs() > 0.01) {
+	while ((this->interval.lowerBound - this->interval.upperBound).abs() > 0.01) {
 		refine();
 	}
-	this->polynomial.normalize(this->interval.lower_bound, this->interval.upper_bound);
+	this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Rational& lowerBound,
                                          const Rational& upperBound)
-//: polynomial(std::move(polynomial)), interval{.lower_bound = lowerBound, .upper_bound = upperBound}
+//: polynomial(std::move(polynomial)), interval{.lowerBound = lowerBound, .upperBound = upperBound}
 {
 	this->polynomial = polynomial;
-	this->interval.lower_bound = lowerBound;
-	this->interval.upper_bound = upperBound;
+	this->interval.lowerBound = lowerBound;
+	this->interval.upperBound = upperBound;
 	//normalize();
-	while ((this->interval.lower_bound - this->interval.upper_bound).abs() > 0.01) {
+	while ((this->interval.lowerBound - this->interval.upperBound).abs() > 0.01) {
 		refine();
 	}
-	this->polynomial.normalize(this->interval.lower_bound, this->interval.upper_bound);
+	this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound,
                                          const Rational& upperBound)
-	: polynomial(coefficients), interval{.lower_bound = lowerBound, .upper_bound = upperBound} {
+	: polynomial(coefficients), interval{.lowerBound = lowerBound, .upperBound = upperBound} {
 	//normalize();
-	while ((this->interval.lower_bound - this->interval.upper_bound).abs() > 0.01) {
+	while ((this->interval.lowerBound - this->interval.upperBound).abs() > 0.01) {
 		refine();
 	}
-	this->polynomial.normalize(this->interval.lower_bound, this->interval.upper_bound);
+	this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const int value) {
 	this->polynomial = Polynomial({-value, 1});
-	this->interval.lower_bound = value - 0.01;
-	this->interval.upper_bound = value + 0.01;
-	this->polynomial.normalize(this->interval.lower_bound, this->interval.upper_bound);
+	this->interval.lowerBound = value - 0.01;
+	this->interval.upperBound = value + 0.01;
+	this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const double value) {
 	const Rational rationalValue = value;
 	this->polynomial = Polynomial({-rationalValue, 1});
-	this->interval.lower_bound = rationalValue - 0.01;
-	this->interval.upper_bound = rationalValue + 0.01;
-	this->polynomial.normalize(this->interval.lower_bound, this->interval.upper_bound);
-}
-
-//RealAlgebraicNumber RealAlgebraicNumber::fromInteger(const int n)
-//{
-//	this->polynomial = Polynomial({ -n, 1 });
-//	this->interval.lower_bound = n-0.01;
-//	this->interval.upper_bound = n+0.01;
-//	this->polynomial.normalize(this->interval.lower_bound, this->interval.upper_bound);
-//	return *this;
-//}
-
-static void printSylvester(const matrix& sylvester) {
-	PROFILE_FUNCTION
-	for (const std::vector<Polynomial>& i : sylvester) {
-		for (const Polynomial& j : i) {
-			std::cout << j.toString() << " | ";
-		}
-		std::cout << '\n';
-	}
+	this->interval.lowerBound = rationalValue - 0.01;
+	this->interval.upperBound = rationalValue + 0.01;
+	this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
 }
 
 RealAlgebraicNumber operator+(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs) {
@@ -411,10 +296,10 @@ RealAlgebraicNumber operator-(const RealAlgebraicNumber& lhs, const RealAlgebrai
 
 RealAlgebraicNumber RealAlgebraicNumber::operator-() const {
 	PROFILE_FUNCTION
-	return {polynomial.reflectY(), -interval.upper_bound, -interval.lower_bound};
+	return {polynomial.reflectY(), -interval.upperBound, -interval.lowerBound};
 }
 
-static Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
+Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
 	PROFILE_FUNCTION
 	Rational min = r1;
 	if (r2 < min) min = r2;
@@ -423,7 +308,7 @@ static Rational minRational(const Rational& r1, const Rational& r2, const Ration
 	return min;
 }
 
-static Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
+Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
 	PROFILE_FUNCTION
 	Rational max = r1;
 	if (r2 > max) max = r2;
@@ -451,15 +336,8 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+=(const RealAlgebraicNumber& o
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
 
-	const std::vector<Polynomial> fXminY = poly_x_minus_y(thisCopy.polynomial);
-	const matrix sylvester = createSylvesterMatrix(fXminY, otherCopy.polynomial);
-	//printSylvester(sylvester);
-	//Polynomial f3 = determinant(sylvester);
-	MatrixXp eigenMat = convertToEigen(sylvester);
-	Polynomial f3 = determinantEigen(eigenMat);
-
-	//Polynomial f3test = determinantBareiss(sylvester);
-	//std::cout << (f3 == f3test) << std::endl;
+	MyMatrix<Polynomial> sylvester_mat = constructSylvesterMatrixForSum(this->polynomial, other.polynomial);
+	Polynomial f3 = sylvester_mat.determinant();
 
 	std::vector<Polynomial> sturm;
 	if (f3.sturm_sequence.empty()) {
@@ -470,20 +348,20 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+=(const RealAlgebraicNumber& o
 	}
 
 	// Compute initial interval bounds
-	Rational l3 = thisCopy.interval.lower_bound + otherCopy.interval.lower_bound;
-	Rational r3 = thisCopy.interval.upper_bound + otherCopy.interval.upper_bound;
+	Rational l3 = thisCopy.interval.lowerBound + otherCopy.interval.lowerBound;
+	Rational r3 = thisCopy.interval.upperBound + otherCopy.interval.upperBound;
 
 	// Refine interval until exactly one root is isolated
 	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
 		thisCopy.refine();
 		otherCopy.refine();
-		l3 = thisCopy.interval.lower_bound + otherCopy.interval.lower_bound;
-		r3 = thisCopy.interval.upper_bound + otherCopy.interval.upper_bound;
+		l3 = thisCopy.interval.lowerBound + otherCopy.interval.lowerBound;
+		r3 = thisCopy.interval.upperBound + otherCopy.interval.upperBound;
 	}
 
 	f3.normalize(l3, r3);
 
-	const Interval sumInterval = {.lower_bound = l3, .upper_bound = r3};
+	const Interval sumInterval = {.lowerBound = l3, .upperBound = r3};
 
 	this->polynomial = f3;
 	this->interval = sumInterval;
@@ -505,17 +383,8 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*=(const RealAlgebraicNumber& o
 	RealAlgebraicNumber thisCopy = *this;
 
 	// make sure they are normalised
-	otherCopy.polynomial.normalize(otherCopy.interval.lower_bound, otherCopy.interval.upper_bound);
-	thisCopy.polynomial.normalize(thisCopy.interval.lower_bound, thisCopy.interval.upper_bound);
-
-	//const std::vector<Polynomial> fXoverY = poly_x_over_y(thisCopy.polynomial);
-	//const matrix sylvester = createSylvesterMatrix(fXoverY, otherCopy.polynomial);
-	////printSylvester(sylvester);
-	////Polynomial f3 = determinant(sylvester);
-	////MatrixXp eigenMat = convertToEigen(sylvester);
-	////Polynomial f3 = determinantEigen(eigenMat);
-
-	//Polynomial f3 = determinantBareiss(sylvester);
+	otherCopy.polynomial.normalize(otherCopy.interval.lowerBound, otherCopy.interval.upperBound);
+	thisCopy.polynomial.normalize(thisCopy.interval.lowerBound, thisCopy.interval.upperBound);
 
 	MyMatrix<Polynomial> sylvester_prod_mat = constructSylvesterMatrixForProduct(
 		thisCopy.polynomial, otherCopy.polynomial);
@@ -531,15 +400,15 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*=(const RealAlgebraicNumber& o
 	}*/
 
 	Rational l3 = minRational(
-		thisCopy.interval.lower_bound * otherCopy.interval.lower_bound,
-		thisCopy.interval.lower_bound * otherCopy.interval.upper_bound,
-		thisCopy.interval.upper_bound * otherCopy.interval.lower_bound,
-		thisCopy.interval.upper_bound * otherCopy.interval.upper_bound);
+		thisCopy.interval.lowerBound * otherCopy.interval.lowerBound,
+		thisCopy.interval.lowerBound * otherCopy.interval.upperBound,
+		thisCopy.interval.upperBound * otherCopy.interval.lowerBound,
+		thisCopy.interval.upperBound * otherCopy.interval.upperBound);
 	Rational r3 = maxRational(
-		thisCopy.interval.lower_bound * otherCopy.interval.lower_bound,
-		thisCopy.interval.lower_bound * otherCopy.interval.upper_bound,
-		thisCopy.interval.upper_bound * otherCopy.interval.lower_bound,
-		thisCopy.interval.upper_bound * otherCopy.interval.upper_bound);
+		thisCopy.interval.lowerBound * otherCopy.interval.lowerBound,
+		thisCopy.interval.lowerBound * otherCopy.interval.upperBound,
+		thisCopy.interval.upperBound * otherCopy.interval.lowerBound,
+		thisCopy.interval.upperBound * otherCopy.interval.upperBound);
 
 	f3.normalize(l3, r3);
 
@@ -553,25 +422,25 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*=(const RealAlgebraicNumber& o
 
 	// Refine interval until exactly one root is isolated
 	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
-		//auto f1 = RealAlgebraicNumber(polynomial, interval.lower_bound, r3);
+		//auto f1 = RealAlgebraicNumber(polynomial, interval.lowerBound, r3);
 		thisCopy.refine();
 		otherCopy.refine();
 		l3 = minRational(
-			thisCopy.interval.lower_bound * otherCopy.interval.lower_bound,
-			thisCopy.interval.lower_bound * otherCopy.interval.upper_bound,
-			thisCopy.interval.upper_bound * otherCopy.interval.lower_bound,
-			thisCopy.interval.upper_bound * otherCopy.interval.upper_bound);
+			thisCopy.interval.lowerBound * otherCopy.interval.lowerBound,
+			thisCopy.interval.lowerBound * otherCopy.interval.upperBound,
+			thisCopy.interval.upperBound * otherCopy.interval.lowerBound,
+			thisCopy.interval.upperBound * otherCopy.interval.upperBound);
 		r3 = maxRational(
-			thisCopy.interval.lower_bound * otherCopy.interval.lower_bound,
-			thisCopy.interval.lower_bound * otherCopy.interval.upper_bound,
-			thisCopy.interval.upper_bound * otherCopy.interval.lower_bound,
-			thisCopy.interval.upper_bound * otherCopy.interval.upper_bound);
+			thisCopy.interval.lowerBound * otherCopy.interval.lowerBound,
+			thisCopy.interval.lowerBound * otherCopy.interval.upperBound,
+			thisCopy.interval.upperBound * otherCopy.interval.lowerBound,
+			thisCopy.interval.upperBound * otherCopy.interval.upperBound);
 	}
 
 	f3.normalize(l3, r3);
 
 	this->polynomial = f3;
-	this->interval = {.lower_bound = l3, .upper_bound = r3};
+	this->interval = {.lowerBound = l3, .upperBound = r3};
 
 	return *this;
 }
@@ -598,22 +467,22 @@ bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const {
 	}
 
 	for (int i = 0; i < 50; i++) {
-		if (thisCopy.interval.lower_bound == otherCopy.interval.lower_bound && thisCopy.interval.upper_bound ==
-			otherCopy.interval.upper_bound) {
+		if (thisCopy.interval.lowerBound == otherCopy.interval.lowerBound && thisCopy.interval.upperBound ==
+			otherCopy.interval.upperBound) {
 			//std::cout << "Equal after " << i << '\n';
 			return true;
 		}
-		if (thisCopy.interval.lower_bound > otherCopy.interval.lower_bound && thisCopy.interval.upper_bound < otherCopy.
-			interval.upper_bound) {
+		if (thisCopy.interval.lowerBound > otherCopy.interval.lowerBound && thisCopy.interval.upperBound < otherCopy.
+			interval.upperBound) {
 			return true;
 		}
-		if (thisCopy.interval.lower_bound < otherCopy.interval.lower_bound && thisCopy.interval.upper_bound > otherCopy.
-			interval.upper_bound) {
+		if (thisCopy.interval.lowerBound < otherCopy.interval.lowerBound && thisCopy.interval.upperBound > otherCopy.
+			interval.upperBound) {
 			return true;
 		}
 
-		if (thisCopy.interval.lower_bound > otherCopy.interval.upper_bound || thisCopy.interval.upper_bound < otherCopy.
-			interval.lower_bound) {
+		if (thisCopy.interval.lowerBound > otherCopy.interval.upperBound || thisCopy.interval.upperBound < otherCopy.
+			interval.lowerBound) {
 			return false;
 		}
 		thisCopy.refine();
@@ -638,10 +507,10 @@ bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
 	}
 
 	while (true) {
-		if (thisCopy.interval.upper_bound < otherCopy.interval.lower_bound) {
+		if (thisCopy.interval.upperBound < otherCopy.interval.lowerBound) {
 			return true;
 		}
-		if (thisCopy.interval.lower_bound > otherCopy.interval.upper_bound) {
+		if (thisCopy.interval.lowerBound > otherCopy.interval.upperBound) {
 			return false;
 		}
 		thisCopy.refine();
@@ -667,12 +536,12 @@ bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& other) const {
 RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
 	PROFILE_FUNCTION
 	std::vector<Rational> inverseCo(polynomial.coefficients.rbegin(), polynomial.coefficients.rend());
-	Rational inverseLower = interval.upper_bound.inverse();
-	Rational inverseUpper = interval.lower_bound.inverse();
+	Rational inverseLower = interval.upperBound.inverse();
+	Rational inverseUpper = interval.lowerBound.inverse();
 	return {inverseCo, inverseLower, inverseUpper};
 }
 
-RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) {
+RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) const {
 	PROFILE_FUNCTION
 	// 1. Check Non-Negativity (for even n): If n is even, ensure the algebraic number is non-negative.
 	// If it is negative, the n-th root is not real and the operation is undefined.
@@ -683,7 +552,7 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) {
 	// If n is odd and a is negative, the new interval is (-sqrt(r.abs()), -sqrt(l.abs())).
 	// 4. Refine the Interval: Refine the interval until exactly one root is isolated.
 	// 5. Return the Result: Return the algebraic number with the new polynomial and interval.
-	if (n % 2 == 0 && interval.lower_bound < 0) {
+	if (n % 2 == 0 && interval.lowerBound < 0) {
 		throw std::invalid_argument("Cannot compute even root of negative number");
 	}
 
@@ -709,46 +578,35 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) {
 	Rational l3;
 	Rational r3;
 
-	if (n % 2 != 0 && interval.lower_bound < 0) {
-		l3 = -interval.upper_bound.abs().sqrt(n) - 0.01;
-		r3 = -interval.lower_bound.abs().sqrt(n) + 0.01;
+	if (n % 2 != 0 && interval.lowerBound < 0) {
+		l3 = -interval.upperBound.abs().sqrt(n) - 0.01;
+		r3 = -interval.lowerBound.abs().sqrt(n) + 0.01;
 	}
 	else {
-		l3 = interval.lower_bound.sqrt(n) - 0.01;
-		r3 = interval.upper_bound.sqrt(n) + 0.01;
+		l3 = interval.lowerBound.sqrt(n) - 0.01;
+		r3 = interval.upperBound.sqrt(n) + 0.01;
 	}
 
 	//while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
-	//	//auto f1 = RealAlgebraicNumber(polynomial, interval.lower_bound, r3);
+	//	//auto f1 = RealAlgebraicNumber(polynomial, interval.lowerBound, r3);
 	//	this->refine();
-	//	if (n % 2 != 0 && interval.lower_bound < 0)
+	//	if (n % 2 != 0 && interval.lowerBound < 0)
 	//	{
-	//		l3 = -interval.upper_bound.abs().sqrt(n);
-	//		r3 = -interval.lower_bound.abs().sqrt(n);
+	//		l3 = -interval.upperBound.abs().sqrt(n);
+	//		r3 = -interval.lowerBound.abs().sqrt(n);
 	//	}
 	//	else
 	//	{
-	//		l3 = interval.lower_bound.sqrt(n);
-	//		r3 = interval.upper_bound.sqrt(n);
+	//		l3 = interval.lowerBound.sqrt(n);
+	//		r3 = interval.upperBound.sqrt(n);
 	//	}
 	//}
 
-	return {f3, {.lower_bound = l3, .upper_bound = r3}};
+	return {f3, {.lowerBound = l3, .upperBound = r3}};
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 	PROFILE_FUNCTION
-	//if (n == 0) {
-	//	std::vector<Rational> coefficients = {-1, 1};
-	//	return {coefficients, 0.99, 1.01};
-	//}
-	////if (n == 1) return *this;
-	//RealAlgebraicNumber result = *this;
-	//for (int i = 1; i < n; i++) {
-	//	//RealAlgebraicNumber temp = *this;
-	//	result *= *this;
-	//}
-	//return result;
 
 	if (n == 0) {
 		std::vector<Rational> coefficients = {-1, 1};
@@ -756,73 +614,73 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 	}
 
 	RealAlgebraicNumber thisCopy = *this;
-	thisCopy.polynomial.normalize(thisCopy.interval.lower_bound, thisCopy.interval.upper_bound);
+	thisCopy.polynomial.normalize(thisCopy.interval.lowerBound, thisCopy.interval.upperBound);
 
-	MyMatrix<Polynomial> sylvester_mat = constructSylvesterMatrixForPower(thisCopy.polynomial, n);
-	Polynomial f3 = sylvester_mat.determinant();
+	MyMatrix<Polynomial> sylvesterMat = constructSylvesterMatrixForPower(thisCopy.polynomial, n);
+	Polynomial f3 = sylvesterMat.determinant();
 
 	Rational l3;
 	Rational r3;
 
 	// Handle k > 0
-	if (this->interval.lower_bound >= 0) {
+	if (this->interval.lowerBound >= 0) {
 		// Both endpoints are non-negative
-		l3 = this->interval.lower_bound.pow(n);
-		r3 = this->interval.upper_bound.pow(n);
+		l3 = this->interval.lowerBound.pow(n);
+		r3 = this->interval.upperBound.pow(n);
 	}
-	else if (this->interval.upper_bound <= Rational(0)) {
+	else if (this->interval.upperBound <= Rational(0)) {
 		// Both endpoints are non-positive
 		if (n % 2 == 0) {
 			// Even power: result is positive, order flips
-			l3 = this->interval.upper_bound.pow(n);
-			r3 = this->interval.lower_bound.pow(n);
+			l3 = this->interval.upperBound.pow(n);
+			r3 = this->interval.lowerBound.pow(n);
 		}
 		else {
 			// Odd power: result stays negative, order same
-			l3 = this->interval.lower_bound.pow(n);
-			r3 = this->interval.upper_bound.pow(n);
+			l3 = this->interval.lowerBound.pow(n);
+			r3 = this->interval.upperBound.pow(n);
 		}
 	}
 	else {
 		// Interval spans zero (lower < 0 < upper)
-		auto min_val = Rational(0);
-		Rational lowerPowerN = this->interval.lower_bound.pow(n);
-		Rational upperPowerN = this->interval.upper_bound.pow(n);
-		Rational max_val = lowerPowerN > upperPowerN ? lowerPowerN : upperPowerN;
+		auto minVal = Rational(0);
+		Rational lowerPowerN = this->interval.lowerBound.pow(n);
+		Rational upperPowerN = this->interval.upperBound.pow(n);
+		Rational maxVal = lowerPowerN > upperPowerN ? lowerPowerN : upperPowerN;
 
 		// If k is even, the minimum value will be 0.
 		// If k is odd, the minimum value will be lower.power(k).
 		if (n % 2 != 0) {
 			// Even power, like [-2, 3]^2 -> [0, 9]
-			min_val = lowerPowerN;
-			max_val = upperPowerN;
+			minVal = lowerPowerN;
+			maxVal = upperPowerN;
 		}
 
-		l3 = min_val;
-		r3 = max_val;
+		l3 = minVal;
+		r3 = maxVal;
 	}
 
 	f3.normalize(l3, r3);
-	return {f3, {.lower_bound = l3, .upper_bound = r3}};
+	return {f3, {.lowerBound = l3, .upperBound = r3}};
 }
 
 void RealAlgebraicNumber::testOperators() {
 	PROFILE_FUNCTION
 	RealAlgebraicNumber a = 2;
 	RealAlgebraicNumber b = 3;
-	auto c = RealAlgebraicNumber({-2, 0, 1}, {.lower_bound = {1, 1}, .upper_bound = {2, 1}}); // sqrt(2)
-	auto d = RealAlgebraicNumber({-3, 0, 1}, {.lower_bound = {1, 1}, .upper_bound = {2, 1}}); // sqrt(3)
+	auto c = RealAlgebraicNumber({-2, 0, 1}, {.lowerBound = {1, 1}, .upperBound = {2, 1}}); // sqrt(2)
+	auto d = RealAlgebraicNumber({-3, 0, 1}, {.lowerBound = {1, 1}, .upperBound = {2, 1}}); // sqrt(3)
 
 	RealAlgebraicNumber e = 5;
 	RealAlgebraicNumber f = -1;
-	auto g = RealAlgebraicNumber({1, 0, -10, 0, 1}, {.lower_bound = {3146, 1000}, .upper_bound = {3147, 1000}});
+	auto g = RealAlgebraicNumber({1, 0, -10, 0, 1}, {.lowerBound = {3146, 1000}, .upperBound = {3147, 1000}});
 	// x^4 - 10x^2 + 1
-	auto h = RealAlgebraicNumber({1, 0, -10, 0, 1}, {.lower_bound = {-318, 1000}, .upper_bound = {-317, 1000}});
+	auto h = RealAlgebraicNumber({1, 0, -10, 0, 1}, {.lowerBound = {-318, 1000}, .upperBound = {-317, 1000}});
 	RealAlgebraicNumber i = 6;
-	auto j = RealAlgebraicNumber({2, -3}, {.lower_bound = {666, 1000}, .upper_bound = {667, 1000}});
-	auto k = RealAlgebraicNumber({4, 0, -12, 0, 9}, {.lower_bound = {816, 1000}, .upper_bound = {817, 1000}});
+	auto j = RealAlgebraicNumber({2, -3}, {.lowerBound = {666, 1000}, .upperBound = {667, 1000}});
+	auto k = RealAlgebraicNumber({4, 0, -12, 0, 9}, {.lowerBound = {816, 1000}, .upperBound = {817, 1000}});
 	// 9x^4 - 12x^2 + 4
-	auto l = RealAlgebraicNumber({36, 0, -12, 0, 1}, {.lower_bound = {244, 100}, .upper_bound = {245, 100}});
+	auto l = RealAlgebraicNumber({36, 0, -12, 0, 1}, {.lowerBound = {244, 100}, .upperBound = {245, 100}});
 	// x^4 - 12x^2 + 36
 
 	if (a + b != e || c + d != g)
@@ -855,8 +713,8 @@ void RealAlgebraicNumber::testOperators() {
 	if (aa /= b, cc /= d; aa != j || cc != k)
 		std::cout << "operator/= not working!\n";
 
-	auto aAlt = RealAlgebraicNumber({-2, 1}, {.lower_bound = {1, 1}, .upper_bound = {4, 1}});
-	auto cAlt = RealAlgebraicNumber({-2, 0, 1}, {.lower_bound = {1414, 1000}, .upper_bound = {1415, 1000}});
+	auto aAlt = RealAlgebraicNumber({-2, 1}, {.lowerBound = {1, 1}, .upperBound = {4, 1}});
+	auto cAlt = RealAlgebraicNumber({-2, 0, 1}, {.lowerBound = {1414, 1000}, .upperBound = {1415, 1000}});
 
 	if ((a == aAlt) == false || (c == cAlt) == false)
 		std::cout << "operator== not working!\n";
@@ -871,8 +729,8 @@ void RealAlgebraicNumber::testOperators() {
 	if ((b >= a) == false || (d >= c) == false || (b >= b) == false || (d >= d) == false)
 		std::cout << "operator>= not working!\n";
 
-	auto invA = RealAlgebraicNumber({-1, 2}, {.lower_bound = {3, 100}, .upper_bound = {6, 100}});
-	auto invC = RealAlgebraicNumber({-1, 0, 2}, {.lower_bound = {707, 1000}, .upper_bound = {708, 1000}});
+	auto invA = RealAlgebraicNumber({-1, 2}, {.lowerBound = {3, 100}, .upperBound = {6, 100}});
+	auto invC = RealAlgebraicNumber({-1, 0, 2}, {.lowerBound = {707, 1000}, .upperBound = {708, 1000}});
 
 	std::cout << a.inverse().toString() << std::endl;
 	std::cout << c.inverse().toString() << std::endl;
@@ -952,20 +810,20 @@ void RealAlgebraicNumber::normalize() {
 		sturm = polynomial.sturm_sequence;
 	}
 
-	const int varL = variationCount(sturm, interval.lower_bound);
+	const int varL = variationCount(sturm, interval.lowerBound);
 	const int varNegP = variationCount(sturm, -p);
 	const int varP = variationCount(sturm, p);
-	//int varR = variationCount(polynomial.coefficients, interval.upper_bound);
+	//int varR = variationCount(polynomial.coefficients, interval.upperBound);
 
 	if (varL > varNegP) {
-		interval.upper_bound = -p; // Adjust interval to exclude zero
+		interval.upperBound = -p; // Adjust interval to exclude zero
 	}
 	else if (varNegP > varP) {
-		interval.lower_bound = 0;
-		interval.upper_bound = 0; // Indicating zero root
+		interval.lowerBound = 0;
+		interval.upperBound = 0; // Indicating zero root
 	}
 	else {
-		interval.lower_bound = p; // Adjust to keep positive sign interval
+		interval.lowerBound = p; // Adjust to keep positive sign interval
 	}
 }
 
@@ -979,37 +837,26 @@ void RealAlgebraicNumber::refine() {
 		sturm = polynomial.sturm_sequence;
 	}
 
-	const Rational m = (interval.lower_bound + interval.upper_bound) / 2;
+	const Rational m = (interval.lowerBound + interval.upperBound) / 2;
 
-	const int varL = variationCount(sturm, interval.lower_bound);
+	const int varL = variationCount(sturm, interval.lowerBound);
 	const int varM = variationCount(sturm, m);
 	if (varL > varM) {
-		interval.upper_bound = m;
+		interval.upperBound = m;
 	}
 	else {
-		interval.lower_bound = m;
+		interval.lowerBound = m;
 	}
 }
 
 std::string RealAlgebraicNumber::toString() const {
 	PROFILE_FUNCTION
-	/*Rational prevLower = interval.lower_bound;
-	Rational prevUpper = interval.upper_bound;
-	while (true) {
-		RealAlgebraicNumber current = {polynomial, prevLower, prevUpper};
-		current.refine();
-		if (current.interval.lower_bound == prevLower && current.interval.upper_bound == prevUpper) {
-			break;
-		}
-		prevLower = current.interval.lower_bound;
-		prevUpper = current.interval.upper_bound;
-	}*/
 	std::string output;
 	output += polynomial.toString() + " @ ";
-	const double lower = static_cast<double>(interval.lower_bound);
+	const double lower = static_cast<double>(interval.lowerBound);
 	output += std::to_string(lower);
 	output += " <= x <= ";
-	const double upper = static_cast<double>(interval.upper_bound);
+	const double upper = static_cast<double>(interval.upperBound);
 	output += std::to_string(upper);
 
 	return output;
@@ -1018,23 +865,23 @@ std::string RealAlgebraicNumber::toString() const {
 std::string RealAlgebraicNumber::toDecimalString(int precision) const {
 	PROFILE_FUNCTION
 	if (this->polynomial.degree == 1) {
-		Rational zeroth_coeff = this->polynomial.coefficients[0];
-		return (zeroth_coeff * -1).toDecimalString(0);
+		Rational zerothCoeff = this->polynomial.coefficients[0];
+		return (zerothCoeff * -1).toDecimalString(0);
 	}
 
 	RealAlgebraicNumber temp = *this;
 
 	while (true) {
-		std::string lower_string = temp.interval.lower_bound.toDecimalString(precision);
-		std::string upper_string = temp.interval.upper_bound.toDecimalString(precision);
+		std::string lowerString = temp.interval.lowerBound.toDecimalString(precision);
+		std::string upperString = temp.interval.upperBound.toDecimalString(precision);
 
 		// only keeping part after '.'
-		std::string lower_string_decimal = lower_string.substr(lower_string.find('.') + 1);
-		std::string upper_string_decimal = upper_string.substr(upper_string.find('.') + 1);
+		std::string lowerStringDecimal = lowerString.substr(lowerString.find('.') + 1);
+		std::string upperStringDecimal = upperString.substr(upperString.find('.') + 1);
 
 		int matchingNumbers = 0;
-		for (size_t i = 0; i < lower_string_decimal.size(); i++) {
-			if (lower_string_decimal[i] == upper_string_decimal[i]) {
+		for (size_t i = 0; i < lowerStringDecimal.size(); i++) {
+			if (lowerStringDecimal[i] == upperStringDecimal[i]) {
 				matchingNumbers++;
 			}
 			else {
@@ -1044,8 +891,8 @@ std::string RealAlgebraicNumber::toDecimalString(int precision) const {
 
 		if (matchingNumbers >= precision) {
 			// remove trailing zeros
-			lower_string.erase(lower_string.find_last_not_of('0') + 1);
-			return lower_string;
+			lowerString.erase(lowerString.find_last_not_of('0') + 1);
+			return lowerString;
 		}
 
 		temp.refine();

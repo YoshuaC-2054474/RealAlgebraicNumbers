@@ -83,7 +83,7 @@ Rational::Rational(const double numer, const long long maxDenominator) {
 	denominator /= g;
 }
 
-Rational::Rational(const float numer) : Rational(static_cast<double>(numer)) {}
+Rational::Rational(const float numerator) : Rational(static_cast<double>(numerator)) {}
 
 Rational::Rational(const Rational& other) = default;
 

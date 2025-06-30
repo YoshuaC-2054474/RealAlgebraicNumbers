@@ -45,7 +45,12 @@ Rational::Rational(const int numerator) {
 	this->denominator = 1;
 }
 
-Rational::Rational(const double numer, const cpp_int& maxDenominator) {
+Rational::Rational(const long long numerator) {
+	this->numerator = cpp_int(numerator);
+	this->denominator = 1;
+}
+
+Rational::Rational(const double numerator, const cpp_int& maxDenominator) {
 	PROFILE_FUNCTION
 	if (maxDenominator <= 0) {
 		throw std::invalid_argument("Max denominator must be positive");
@@ -54,8 +59,8 @@ Rational::Rational(const double numer, const cpp_int& maxDenominator) {
 	constexpr double epsilon = 1e-10; // Tolerance for approximation
 	int h[3] = {0, 1, 0};
 	int k[3] = {1, 0, 0};
-	double x = std::abs(numer);
-	const int sign = numer < 0 ? -1 : 1;
+	double x = std::abs(numerator);
+	const int sign = numerator < 0 ? -1 : 1;
 
 	// Continued fraction coefficients
 	for (int i = 0; ; ++i) {
@@ -84,13 +89,13 @@ Rational::Rational(const double numer, const cpp_int& maxDenominator) {
 		x = 1.0 / (x - a);
 	}
 
-	numerator = sign * h[2];
-	denominator = k[2];
+	this->numerator = sign * h[2];
+	this->denominator = k[2];
 
 	simplify();
 }
 
-Rational::Rational(const float numer) : Rational(static_cast<double>(numer)) {}
+Rational::Rational(const float numerator) : Rational(static_cast<double>(numerator)) {}
 
 Rational::Rational(const Rational& other) = default;
 
@@ -112,25 +117,25 @@ std::string Rational::toDecimalString(int precision) const {
 	// --- 1. Handle the sign ---
 	// The final result is negative if numerator and denominator have opposite signs.
 	// We then proceed with positive numbers for the calculation.
-	std::string sign_str = "";
+	std::string signStr;
 	if (num < 0) {
-		sign_str = "-";
+		signStr = "-";
 		num *= -1;
 	}
 
 	// --- 2. Calculate the integer part ---
-	cpp_int integer_part = num / den;
+	cpp_int integerPart = num / den;
 
 	// --- 3. Calculate the initial remainder for the fractional part ---
 	cpp_int remainder = num % den;
 
 	// If there is no remainder, the number is an integer.
 	if (remainder == 0) {
-		return sign_str + integer_part.str() + (precision > 0 ? "." + std::string(precision, '0') : "");
+		return signStr + integerPart.str() + (precision > 0 ? "." + std::string(precision, '0') : "");
 	}
 
 	// --- 4. Calculate the fractional part ---
-	std::string fractional_str = "";
+	std::string fractionalStr;
 
 	// Loop for each decimal place required.
 	for (int i = 0; i < precision; ++i) {
@@ -139,7 +144,7 @@ std::string Rational::toDecimalString(int precision) const {
 
 		// The next digit is the integer result of dividing the new remainder by the denominator.
 		cpp_int digit = remainder / den;
-		fractional_str += digit.str();
+		fractionalStr += digit.str();
 
 		// The new remainder is what's left over.
 		remainder %= den;
@@ -147,7 +152,7 @@ std::string Rational::toDecimalString(int precision) const {
 		// Optimization: If remainder becomes 0, the decimal terminates.
 		// We can just pad with zeros and finish early.
 		if (remainder == 0) {
-			fractional_str += std::string(precision - i - 1, '0');
+			fractionalStr += std::string(precision - i - 1, '0');
 			break;
 		}
 	}
@@ -156,10 +161,10 @@ std::string Rational::toDecimalString(int precision) const {
 	if (precision == 0) {
 		// Note: Standard rounding would be applied here if needed.
 		// This implementation simply truncates.
-		return sign_str + integer_part.str();
+		return signStr + integerPart.str();
 	}
 
-	return sign_str + integer_part.str() + "." + fractional_str;
+	return signStr + integerPart.str() + "." + fractionalStr;
 }
 
 void Rational::print() const {
@@ -268,7 +273,7 @@ Rational operator-(const Rational& lhs, const Rational& rhs) {
 
 Rational Rational::operator-() const {
 	PROFILE_FUNCTION
-	return Rational(-numerator, denominator);
+	return {-numerator, denominator};
 }
 
 Rational operator*(const Rational& lhs, const Rational& rhs) {
@@ -339,15 +344,15 @@ double Rational::sqrt(const int n) const {
 	return std::pow(val, 1.0 / n);
 }
 
-Rational Rational::pow(int n) const {
-	if (n == 0) return Rational(1);
+Rational Rational::pow(const int n) const {
+	if (n == 0) return 1;
 	if (n < 0) return Rational(denominator, numerator).pow(-n);
 	// For negative exponents, take reciprocal and positive power
 
 	// If using boost::multiprecision::cpp_int:
-	cpp_int res_num = boost::multiprecision::pow(numerator, n);
-	cpp_int res_den = boost::multiprecision::pow(denominator, n);
-	return Rational(res_num, res_den);
+	const cpp_int resNum = boost::multiprecision::pow(numerator, n);
+	const cpp_int resDen = boost::multiprecision::pow(denominator, n);
+	return {resNum, resDen};
 }
 
 Rational Rational::gcd(const Rational& other) const {
@@ -355,32 +360,4 @@ Rational Rational::gcd(const Rational& other) const {
 	cpp_int numGcd = boost::multiprecision::gcd(numerator * other.denominator, other.numerator * denominator);
 	cpp_int denLcm = (denominator * other.denominator); // / boost::multiprecision::gcd(denominator, other.denominator);
 	return {numGcd, denLcm};
-}
-
-//cpp_int Rational::computeGcd(const cpp_int& a, const cpp_int& b) {
-//    cpp_int g;
-//    cpp_int(g.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
-//    return g;
-//}
-
-std::vector<cpp_int> Rational::factorNumerator() const {
-	PROFILE_FUNCTION
-	std::vector<cpp_int> factors;
-	//cpp_int num = numerator;
-	//int numInt = num.convert_to<int>();
-	if (numerator > 0) {
-		for (cpp_int i = 1; i <= numerator; ++i) {
-			if (numerator % i == 0) factors.push_back(i);
-		}
-	}
-	else {
-		for (cpp_int i = -1; i >= numerator; --i) {
-			if (numerator % i == 0) factors.push_back(i);
-		}
-	}
-	return factors;
-}
-
-bool Rational::isInteger() const {
-	return denominator == 1;
 }

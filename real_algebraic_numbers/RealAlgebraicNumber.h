@@ -6,17 +6,18 @@
 //#include <algorithm>
 //#include <cmath>
 
+#include "MyMatrix.h"
 #include "Polynomial.h"
 
 struct Interval {
-	Rational lower_bound;
-	Rational upper_bound;
+	Rational lowerBound;
+	Rational upperBound;
 };
 
 class RealAlgebraicNumber {
 public:
 	Polynomial polynomial;
-	Interval interval = {.lower_bound = 0, .upper_bound = 0};
+	Interval interval = {.lowerBound = 0, .upperBound = 0};
 
 	RealAlgebraicNumber();
 	RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval);
@@ -35,8 +36,8 @@ public:
 	//{
 	//	polynomial.coefficients = { q, -p };
 	//	polynomial.degree = 1;
-	//	interval.lower_bound = static_cast<double>(p) / q - 0.1;
-	//	interval.upper_bound = static_cast<double>(p) / q + 0.1;
+	//	interval.lowerBound = static_cast<double>(p) / q - 0.1;
+	//	interval.upperBound = static_cast<double>(p) / q + 0.1;
 	//}
 
 	//void fromRadical(const int n, const int p, const int q) // n-th root of p/q
@@ -46,8 +47,8 @@ public:
 	//	coefficients[n] = -p;
 	//	polynomial.coefficients = coefficients;
 	//	polynomial.degree = n;
-	//	//interval.lower_bound = 0;
-	//	//interval.upper_bound = 0;
+	//	//interval.lowerBound = 0;
+	//	//interval.upperBound = 0;
 	//}
 	//~RealAlgebraicNumber();
 
@@ -71,7 +72,7 @@ public:
 
 	RealAlgebraicNumber inverse() const;
 	RealAlgebraicNumber abs() const;
-	RealAlgebraicNumber sqrt(int n = 2);
+	RealAlgebraicNumber sqrt(int n = 2) const;
 	RealAlgebraicNumber pow(int n) const;
 
 	bool isZero() const;
@@ -90,6 +91,13 @@ public:
 	static void testOperators();
 
 private:
+	friend long long binomialCoeff(int n, int k);
+	friend MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const Polynomial& q);
+	friend MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, const Polynomial& q);
+	friend MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& p, int k);
+	friend Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4);
+	friend Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4);
+
 	// Function to count sign variations in a sequence
 	static int countSignVariations(const std::vector<Rational>& sequence);
 

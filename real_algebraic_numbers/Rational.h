@@ -13,8 +13,9 @@ public:
 	Rational(int num, int den);
 	Rational(const cpp_int& numerator);
 	Rational(int numerator);
-	Rational(double numer, const cpp_int& maxDenominator = 1000000);
-	Rational(float numer);
+	Rational(long long numerator);
+	Rational(double numerator, const cpp_int& maxDenominator = 1000000);
+	Rational(float numerator);
 	Rational(const Rational& other);
 
 	std::string toString() const;

@@ -18,16 +18,30 @@ public:
 	Polynomial(const std::vector<Rational>& coeffs);
 	Polynomial(int zeroCoeff);
 
+	Polynomial(const Rational& c) {
+		coefficients.push_back(c);
+		degree = 0;
+		/*trim_zeros();*/
+	}
+
 	void normalize(const Rational& lowerBound, const Rational& upperBound);
 	void testNormalize();
 
 	// Check if the polynomial is zero
 	bool isZero() const;
 
+	Rational coeff(const int idx) const {
+		if (idx < 0 || idx >= coefficients.size()) {
+			return 0;
+		}
+		return coefficients[idx];
+	}
+
 	Polynomial operator+(const Polynomial& other) const;
 	Polynomial operator-(const Polynomial& other) const;
 	Polynomial operator*(const Polynomial& other) const;
 	Polynomial operator/(const Polynomial& other) const;
+	Polynomial operator/(const Rational& scalar) const;
 
 	Polynomial& operator+=(const Polynomial& other) {
 		*this = *this + other;

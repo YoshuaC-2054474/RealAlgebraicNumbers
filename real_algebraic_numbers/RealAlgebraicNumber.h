@@ -51,31 +51,16 @@ public:
 	//}
 	//~RealAlgebraicNumber();
 
-	RealAlgebraicNumber operator+(const RealAlgebraicNumber& other) const;
-	RealAlgebraicNumber operator-(const RealAlgebraicNumber& other) const;
+	friend RealAlgebraicNumber operator+(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
+	friend RealAlgebraicNumber operator-(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
 	RealAlgebraicNumber operator-() const;
-	RealAlgebraicNumber operator*(const RealAlgebraicNumber& other) const;
-	RealAlgebraicNumber operator/(const RealAlgebraicNumber& other) const;
+	friend RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
+	friend RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs);
 
-	RealAlgebraicNumber operator+=(const RealAlgebraicNumber& other) {
-		*this = *this + other;
-		return *this;
-	}
-
-	RealAlgebraicNumber operator-=(const RealAlgebraicNumber& other) {
-		*this = *this - other;
-		return *this;
-	}
-
-	RealAlgebraicNumber operator*=(const RealAlgebraicNumber& other) {
-		*this = *this * other;
-		return *this;
-	}
-
-	RealAlgebraicNumber operator/=(const RealAlgebraicNumber& other) {
-		*this = *this / other;
-		return *this;
-	}
+	RealAlgebraicNumber operator+=(const RealAlgebraicNumber& other);
+	RealAlgebraicNumber operator-=(const RealAlgebraicNumber& other);
+	RealAlgebraicNumber operator*=(const RealAlgebraicNumber& other);
+	RealAlgebraicNumber operator/=(const RealAlgebraicNumber& other);
 
 	bool operator==(const RealAlgebraicNumber& other) const;
 	bool operator!=(const RealAlgebraicNumber& other) const;

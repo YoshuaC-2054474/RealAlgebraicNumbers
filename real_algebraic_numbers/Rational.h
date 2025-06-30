@@ -50,11 +50,11 @@ public:
 	Rational& operator*=(const Rational& other);
 	Rational& operator/=(const Rational& other);
 
-	friend Rational operator+(Rational lhs, const Rational& rhs);
-	friend Rational operator-(Rational lhs, const Rational& rhs);
+	friend Rational operator+(const Rational& lhs, const Rational& rhs);
+	friend Rational operator-(const Rational& lhs, const Rational& rhs);
 	Rational operator-() const;
-	friend Rational operator*(Rational lhs, const Rational& rhs);
-	friend Rational operator/(Rational lhs, const Rational& rhs);
+	friend Rational operator*(const Rational& lhs, const Rational& rhs);
+	friend Rational operator/(const Rational& lhs, const Rational& rhs);
 
 	bool operator==(const Rational& other) const;
 	bool operator!=(const Rational& other) const;
@@ -66,6 +66,7 @@ public:
 	Rational abs() const;
 	Rational inverse() const;
 	double sqrt(int n = 2) const;
+	Rational pow(int n = 2) const;
 	Rational gcd(const Rational& other) const;
 	std::vector<cpp_int> factorNumerator() const;
 	bool isInteger() const;

@@ -6,8 +6,7 @@
 
 #include "MyTimer.h"
 
-void Rational::simplify()
-{
+void Rational::simplify() {
 	PROFILE_FUNCTION
 	if (denominator == 0) {
 		throw std::invalid_argument("Denominator cannot be zero");
@@ -101,8 +100,7 @@ std::string Rational::toString() const {
 	return numerator.str() + "/" + denominator.str();
 }
 
-std::string Rational::toDecimalString(int precision) const
-{
+std::string Rational::toDecimalString(int precision) const {
 	PROFILE_FUNCTION
 	if (precision < 0) {
 		throw std::invalid_argument("Precision must be non-negative.");
@@ -254,16 +252,18 @@ Rational& Rational::operator/=(const Rational& other) {
 	return *this;
 }
 
-Rational operator+(Rational lhs, const Rational& rhs) {
+Rational operator+(const Rational& lhs, const Rational& rhs) {
 	PROFILE_FUNCTION
-	lhs += rhs;
-	return lhs;
+	Rational lhsCopy = lhs;
+	lhsCopy += rhs;
+	return lhsCopy;
 }
 
-Rational operator-(Rational lhs, const Rational& rhs) {
+Rational operator-(const Rational& lhs, const Rational& rhs) {
 	PROFILE_FUNCTION
-	lhs -= rhs;
-	return lhs;
+	Rational lhsCopy = lhs;
+	lhsCopy -= rhs;
+	return lhsCopy;
 }
 
 Rational Rational::operator-() const {
@@ -271,16 +271,18 @@ Rational Rational::operator-() const {
 	return Rational(-numerator, denominator);
 }
 
-Rational operator*(Rational lhs, const Rational& rhs) {
+Rational operator*(const Rational& lhs, const Rational& rhs) {
 	PROFILE_FUNCTION
-	lhs *= rhs;
-	return lhs;
+	Rational lhsCopy = lhs;
+	lhsCopy *= rhs;
+	return lhsCopy;
 }
 
-Rational operator/(Rational lhs, const Rational& rhs) {
+Rational operator/(const Rational& lhs, const Rational& rhs) {
 	PROFILE_FUNCTION
-	lhs /= rhs;
-	return lhs;
+	Rational lhsCopy = lhs;
+	lhsCopy /= rhs;
+	return lhsCopy;
 }
 
 // Comparison Operators
@@ -335,6 +337,17 @@ double Rational::sqrt(const int n) const {
 		throw std::invalid_argument("Even root of negative number");
 	const double val = numerator.convert_to<double>() / denominator.convert_to<double>();
 	return std::pow(val, 1.0 / n);
+}
+
+Rational Rational::pow(int n) const {
+	if (n == 0) return Rational(1);
+	if (n < 0) return Rational(denominator, numerator).pow(-n);
+	// For negative exponents, take reciprocal and positive power
+
+	// If using boost::multiprecision::cpp_int:
+	cpp_int res_num = boost::multiprecision::pow(numerator, n);
+	cpp_int res_den = boost::multiprecision::pow(denominator, n);
+	return Rational(res_num, res_den);
 }
 
 Rational Rational::gcd(const Rational& other) const {

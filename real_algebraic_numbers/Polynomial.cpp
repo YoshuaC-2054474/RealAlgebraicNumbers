@@ -1,6 +1,7 @@
 #include "Polynomial.h"
 #include <iostream>
 #include <numeric>
+#include <algorithm>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <NTL/ZZX.h>
 #include <NTL/ZZXFactoring.h>
@@ -240,7 +241,9 @@ static std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
 					sumOfCubesCoeffs1[halvedExponent2] = a;
 
 					std::vector<Rational> sumOfCubesCoeffs2;
-					int largestHalvedExponent2 = (halvedExponent1*2) > (halvedExponent2*2) ? (halvedExponent1*2) : (halvedExponent2*2);
+					int largestHalvedExponent2 = (halvedExponent1 * 2) > (halvedExponent2 * 2)
+						                             ? (halvedExponent1 * 2)
+						                             : (halvedExponent2 * 2);
 					sumOfCubesCoeffs2.resize(largestHalvedExponent2 + 1, 0);
 					sumOfCubesCoeffs2[halvedExponent1 * 2] = std::pow(b, 2);
 					sumOfCubesCoeffs2[halvedExponent2 * 2] = std::pow(a, 2);
@@ -349,17 +352,16 @@ static std::vector<Polynomial> get_minimal_polynomials(const Polynomial& poly) {
 	return result;
 }
 
-std::vector<Polynomial> minimal_polynomials_ntl(const Polynomial& poly)
-{
+std::vector<Polynomial> minimal_polynomials_ntl(const Polynomial& poly) {
 	PROFILE_FUNCTION
 	ZZX f;
 	f.SetMaxLength(poly.coefficients.size());
 
-	for (long i = 0; i < (long)poly.coefficients.size(); ++i) {
+	for (long i = 0; i < static_cast<long>(poly.coefficients.size()); ++i) {
 		SetCoeff(f, i, to_ZZ(poly.coefficients[i].toInt()));
 	}
 
-	Vec< Pair<ZZX, long> > factors;
+	Vec<Pair<ZZX, long>> factors;
 	ZZ content;
 	factor(content, factors, f);
 
@@ -558,32 +560,44 @@ void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBoun
 //}
 
 bool Polynomial::isZero() const {
-	return degree == -1;
+	return coefficients.empty() || (coefficients.size() == 1 && coefficients[0] == 0);
 }
 
 Polynomial Polynomial::operator+(const Polynomial& other) const {
 	PROFILE_FUNCTION
-	std::vector<Rational> result = coefficients;
+	/*std::vector<Rational> result = coefficients;
 	for (size_t i = 0; i < other.coefficients.size(); i++) {
 		while (result.size() <= i) result.emplace_back(0);
 		result[i] += other.coefficients[i];
 	}
-	return result;
+	return result;*/
+	int max_deg = this->degree > other.degree ? this->degree : other.degree;
+	std::vector<Rational> result_coeffs(max_deg + 1);
+	for (int i = 0; i <= max_deg; ++i) {
+		result_coeffs[i] = this->coeff(i) + other.coeff(i);
+	}
+	return Polynomial(result_coeffs);
 }
 
 Polynomial Polynomial::operator-(const Polynomial& other) const {
 	PROFILE_FUNCTION
-	std::vector<Rational> result = coefficients;
+	/*std::vector<Rational> result = coefficients;
 	for (size_t i = 0; i < other.coefficients.size(); i++) {
 		while (result.size() <= i) result.emplace_back(0);
 		result[i] -= other.coefficients[i];
 	}
-	return result;
+	return result;*/
+	int max_deg = this->degree > other.degree ? this->degree : other.degree;
+	std::vector<Rational> result_coeffs(max_deg + 1);
+	for (int i = 0; i <= max_deg; ++i) {
+		result_coeffs[i] = this->coeff(i) - other.coeff(i);
+	}
+	return Polynomial(result_coeffs);
 }
 
 Polynomial Polynomial::operator*(const Polynomial& other) const {
 	PROFILE_FUNCTION
-	Polynomial result;
+	/*Polynomial result;
 	for (size_t i = 0; i < coefficients.size(); i++) {
 		for (size_t j = 0; j < other.coefficients.size(); j++) {
 			while (result.coefficients.size() <= i + j) result.coefficients.emplace_back(0);
@@ -595,7 +609,18 @@ Polynomial Polynomial::operator*(const Polynomial& other) const {
 
 	result = polyTrim(result);
 
-	return result;
+	return result;*/
+	if (this->isZero() || other.isZero()) {
+		return Polynomial(Rational(0));
+	}
+	int new_deg = this->degree + other.degree;
+	std::vector<Rational> result_coeffs(new_deg + 1, Rational(0));
+	for (int i = 0; i <= this->degree; ++i) {
+		for (int j = 0; j <= other.degree; ++j) {
+			result_coeffs[i + j] += (this->coeff(i) * other.coeff(j));
+		}
+	}
+	return Polynomial(result_coeffs);
 }
 
 Polynomial Polynomial::operator/(const Polynomial& other) const {
@@ -603,11 +628,25 @@ Polynomial Polynomial::operator/(const Polynomial& other) const {
 	if (other.isZero()) {
 		throw std::runtime_error("Division by zero polynomial!");
 	}
+	if (this->isZero()) {
+		return Polynomial(Rational(0));
+	}
 
 	auto [quotient, remainder] = polyDivide(*this, other);
 
 	Polynomial result = polyTrim(quotient);
 	return result;
+}
+
+Polynomial Polynomial::operator/(const Rational& scalar) const {
+	if (scalar == 0) {
+		throw std::runtime_error("Division by zero scalar in polynomial.");
+	}
+	std::vector<Rational> result_coeffs(coefficients.size());
+	for (size_t i = 0; i < coefficients.size(); ++i) {
+		result_coeffs[i] = coefficients[i] / scalar;
+	}
+	return Polynomial(result_coeffs);
 }
 
 bool Polynomial::operator==(const Polynomial& other) const {
@@ -672,8 +711,7 @@ Polynomial Polynomial::polyTrim(const Polynomial& poly) {
 }
 
 std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(
-	const Polynomial& dividend, const Polynomial& divisor)
-{
+	const Polynomial& dividend, const Polynomial& divisor) {
 	PROFILE_FUNCTION
 	const Polynomial a = polyTrim(dividend);
 	const Polynomial b = polyTrim(divisor);

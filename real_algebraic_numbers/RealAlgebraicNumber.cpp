@@ -7,6 +7,7 @@
 #include "MyMatrix.h"
 
 long long binomialCoeff(const int n, int k) {
+	PROFILE_FUNCTION
 	if (k < 0 || k > n) {
 		return 0;
 	}
@@ -25,6 +26,7 @@ long long binomialCoeff(const int n, int k) {
 }
 
 MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const Polynomial& q) {
+	PROFILE_FUNCTION
 	if (p.isZero() || q.isZero()) {
 		// Special handling for zero polynomials: sum would be the other poly or zero.
 		// For resultant, result would typically be zero.
@@ -267,16 +269,16 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<Rational>& coefficien
 
 RealAlgebraicNumber::RealAlgebraicNumber(const int value) {
 	this->polynomial = Polynomial({-value, 1});
-	this->interval.lowerBound = value - 0.01;
-	this->interval.upperBound = value + 0.01;
+	this->interval.lowerBound = value;
+	this->interval.upperBound = value;
 	this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const double value) {
 	const Rational rationalValue = value;
 	this->polynomial = Polynomial({-rationalValue, 1});
-	this->interval.lowerBound = rationalValue - 0.01;
-	this->interval.upperBound = rationalValue + 0.01;
+	this->interval.lowerBound = rationalValue;
+	this->interval.upperBound = rationalValue;
 	this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
 }
 
@@ -461,35 +463,74 @@ bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const {
 
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
+	otherCopy.polynomial.normalize(otherCopy.interval.lowerBound, otherCopy.interval.upperBound);
+	thisCopy.polynomial.normalize(thisCopy.interval.lowerBound, thisCopy.interval.upperBound);
 
 	if (thisCopy.polynomial != otherCopy.polynomial) {
 		return false;
 	}
 
-	for (int i = 0; i < 50; i++) {
-		if (thisCopy.interval.lowerBound == otherCopy.interval.lowerBound && thisCopy.interval.upperBound ==
-			otherCopy.interval.upperBound) {
-			//std::cout << "Equal after " << i << '\n';
-			return true;
-		}
-		if (thisCopy.interval.lowerBound > otherCopy.interval.lowerBound && thisCopy.interval.upperBound < otherCopy.
-			interval.upperBound) {
-			return true;
-		}
-		if (thisCopy.interval.lowerBound < otherCopy.interval.lowerBound && thisCopy.interval.upperBound > otherCopy.
-			interval.upperBound) {
-			return true;
-		}
+	//for (int i = 0; i < 50; i++) {
+	//	// intervals are the same
+	//	if (thisCopy.interval.lowerBound == otherCopy.interval.lowerBound && thisCopy.interval.upperBound ==
+	//		otherCopy.interval.upperBound) {
+	//		return true;
+	//	}
+	//	// one interval is contained in the other
+	//	if (thisCopy.interval.lowerBound > otherCopy.interval.lowerBound && thisCopy.interval.upperBound < otherCopy.
+	//		interval.upperBound) {
+	//		return true;
+	//	}
+	//	if (thisCopy.interval.lowerBound < otherCopy.interval.lowerBound && thisCopy.interval.upperBound > otherCopy.
+	//		interval.upperBound) {
+	//		return true;
+	//	}
 
-		if (thisCopy.interval.lowerBound > otherCopy.interval.upperBound || thisCopy.interval.upperBound < otherCopy.
-			interval.lowerBound) {
-			return false;
-		}
-		thisCopy.refine();
-		otherCopy.refine();
-	}
+	//	// intervals are separated
+	//	if (thisCopy.interval.lowerBound > otherCopy.interval.upperBound || thisCopy.interval.upperBound < otherCopy.
+	//		interval.lowerBound) {
+	//		return false;
+	//	}
+	//	thisCopy.refine();
+	//	otherCopy.refine();
+	//}
+
+
 	//std::cout << "Equal after 50" << '\n';
-	return true;
+	/*return true;*/
+
+	/*if (this->polynomial != other.polynomial) {
+		return false;
+	}
+
+	return (*this - other).isZero();*/
+
+	// intervals are the same
+	if (thisCopy.interval.lowerBound == otherCopy.interval.lowerBound && thisCopy.interval.upperBound ==
+		otherCopy.interval.upperBound) {
+		return true;
+	}
+	// one interval is contained in the other
+	if (thisCopy.interval.lowerBound > otherCopy.interval.lowerBound && thisCopy.interval.upperBound < otherCopy.
+		interval.upperBound) {
+		return true;
+	}
+	if (thisCopy.interval.lowerBound < otherCopy.interval.lowerBound && thisCopy.interval.upperBound > otherCopy.
+		interval.upperBound) {
+		return true;
+	}
+
+	// intervals are separated
+	if (thisCopy.interval.lowerBound > otherCopy.interval.upperBound || thisCopy.interval.upperBound < otherCopy.
+		interval.lowerBound) {
+		return false;
+	}
+
+	// intervals overlap, use order representation
+	int thisOrder = thisCopy.intervalToOrder();
+	int otherOrder = otherCopy.intervalToOrder();
+
+	return thisOrder == otherOrder;
 }
 
 bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& other) const {
@@ -664,6 +705,13 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 	return {f3, {.lowerBound = l3, .upperBound = r3}};
 }
 
+bool RealAlgebraicNumber::isZero() const {
+	if (this->polynomial == Polynomial({0, 1})) {
+		return this->interval.lowerBound <= 0 && this->interval.upperBound >= 0;
+	}
+	return false;
+}
+
 void RealAlgebraicNumber::testOperators() {
 	PROFILE_FUNCTION
 	RealAlgebraicNumber a = 2;
@@ -729,11 +777,8 @@ void RealAlgebraicNumber::testOperators() {
 	if ((b >= a) == false || (d >= c) == false || (b >= b) == false || (d >= d) == false)
 		std::cout << "operator>= not working!\n";
 
-	auto invA = RealAlgebraicNumber({-1, 2}, {.lowerBound = {3, 100}, .upperBound = {6, 100}});
+	auto invA = RealAlgebraicNumber({-1, 2}, {.lowerBound = {3, 10}, .upperBound = {6, 10}});
 	auto invC = RealAlgebraicNumber({-1, 0, 2}, {.lowerBound = {707, 1000}, .upperBound = {708, 1000}});
-
-	std::cout << a.inverse().toString() << std::endl;
-	std::cout << c.inverse().toString() << std::endl;
 
 	if (a.inverse() != invA || c.inverse() != invC)
 		std::cout << "inverse() not working!\n";
@@ -789,6 +834,26 @@ int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, co
 	}
 
 	return countSignVariations(evaluations);
+}
+
+int RealAlgebraicNumber::intervalToOrder() {
+	PROFILE_FUNCTION
+	Rational fInf = 0;
+	for (const Rational& coeff : polynomial.coefficients) {
+		if (fInf < coeff.abs())
+			fInf = coeff.abs();
+		//fInf = std::max(fInf, coeff.abs());
+	}
+
+	std::vector<Polynomial> sturm;
+	if (polynomial.sturm_sequence.empty()) {
+		sturm = polynomial.sturmSequence(polynomial);
+	}
+	else {
+		sturm = polynomial.sturm_sequence;
+	}
+
+	return variationCount(sturm, -1 - fInf) - variationCount(sturm, interval.upperBound);
 }
 
 void RealAlgebraicNumber::normalize() {
@@ -864,7 +929,7 @@ std::string RealAlgebraicNumber::toString() const {
 
 std::string RealAlgebraicNumber::toDecimalString(int precision) const {
 	PROFILE_FUNCTION
-	if (this->polynomial.degree == 1) {
+	if (this->polynomial.degree == 1 && this->polynomial.coefficients[1] == 1) {
 		Rational zerothCoeff = this->polynomial.coefficients[0];
 		return (zerothCoeff * -1).toDecimalString(0);
 	}

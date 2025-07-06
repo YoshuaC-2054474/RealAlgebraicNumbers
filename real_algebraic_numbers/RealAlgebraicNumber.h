@@ -98,6 +98,8 @@ private:
 	friend Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4);
 	friend Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4);
 
+	int intervalToOrder();
+
 	// Function to count sign variations in a sequence
 	static int countSignVariations(const std::vector<Rational>& sequence);
 

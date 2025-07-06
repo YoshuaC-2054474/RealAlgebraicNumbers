@@ -171,48 +171,6 @@ void Rational::print() const {
 	std::cout << numerator << "/" << denominator;
 }
 
-// Arithmetic Operators
-//Rational Rational::operator+(const Rational& other) const {
-//	Rational result = *this;
-//	result += other;
-//	return result;
-//}
-//
-//Rational Rational::operator-(const Rational& other) const {
-//	cpp_int num = numerator * other.denominator - other.numerator * denominator;
-//	cpp_int den = denominator * other.denominator;
-//	return {num, den};
-//}
-//
-//Rational operator-(const cpp_int& lsh, const Rational& other) {
-//	return Rational(lsh) - other;
-//}
-//
-//Rational Rational::operator-() const {
-//	return {-numerator, denominator};
-//}
-//
-//Rational Rational::operator*(const Rational& other) const {
-//	cpp_int num = numerator * other.numerator;
-//	cpp_int den = denominator * other.denominator;
-//	return {num, den};
-//}
-//
-//Rational operator*(const cpp_int& lsh, const Rational& other) {
-//	return Rational(lsh) * other;
-//}
-//
-//Rational Rational::operator/(const Rational& other) const {
-//	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
-//	cpp_int num = numerator * other.denominator;
-//	cpp_int den = denominator * other.numerator;
-//	return {num, den};
-//}
-//
-//Rational operator/(const cpp_int& lsh, const Rational& other) {
-//	return Rational(lsh) / other;
-//}
-//
 Rational Rational::operator%(const Rational& other) const {
 	PROFILE_FUNCTION
 	if (other.numerator == 0) throw std::invalid_argument("Division by zero");

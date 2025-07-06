@@ -10,10 +10,11 @@
 
 // Define a struct to hold statistics for each function
 struct FunctionStats {
-    long long totalTimeUs; // Total time in microseconds
-    long long callCount;
+	long long totalTimeUs; // Total time in microseconds
+	std::vector<long long> timeSamples;
+	long long callCount;
 
-    FunctionStats(); // Declare constructor
+	FunctionStats(); // Declare constructor
 };
 
 // Declarations of global variables and functions (using extern for globals)
@@ -27,12 +28,12 @@ void PrintProfilingReport();
 // RAII class for timing functions
 class FunctionTimer {
 public:
-    FunctionTimer(const char* functionName);
-    ~FunctionTimer();
+	FunctionTimer(const char* functionName);
+	~FunctionTimer();
 
 private:
-    const char* m_functionName;
-    long long m_startTime;
+	const char* m_functionName;
+	long long m_startTime;
 };
 
 // Macro to easily instrument functions

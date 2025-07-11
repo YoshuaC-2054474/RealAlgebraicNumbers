@@ -7,7 +7,7 @@
 #include "MyMatrix.h"
 
 long long binomialCoeff(const int n, int k) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (k < 0 || k > n) {
 		return 0;
 	}
@@ -105,7 +105,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const P
 }
 
 MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, const Polynomial& q) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	const int m = p.degree;
 	const int n = q.degree;
 
@@ -171,7 +171,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, con
 }
 
 MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& p, const int k) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (k <= 0) {
 		throw std::invalid_argument("Exponent k must be positive for power resultant construction.");
 	}
@@ -302,7 +302,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator-() const {
 }
 
 Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	Rational min = r1;
 	if (r2 < min) min = r2;
 	if (r3 < min) min = r3;
@@ -311,7 +311,7 @@ Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3,
 }
 
 Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	Rational max = r1;
 	if (r2 > max) max = r2;
 	if (r3 > max) max = r3;
@@ -539,7 +539,7 @@ bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
 
@@ -560,17 +560,17 @@ bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator>(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return other < *this;
 }
 
 bool RealAlgebraicNumber::operator<=(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return !(*this > other);
 }
 
 bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return !(*this < other);
 }
 
@@ -607,41 +607,43 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) const {
 	Polynomial f3 = {newCoeffs};
 	//newPoly.print();
 
-	/*std::vector<Polynomial> sturm;
+	std::vector<Polynomial> sturm;
 	if (f3.sturm_sequence.empty()) {
 		sturm = f3.sturmSequence(f3);
 	}
 	else
 	{
 		sturm = f3.sturm_sequence;
-	}*/
+	}
+
+	RealAlgebraicNumber thisCopy = *this;
 
 	Rational l3;
 	Rational r3;
 
 	if (n % 2 != 0 && interval.lowerBound < 0) {
-		l3 = -interval.upperBound.abs().sqrt(n) - 0.01;
-		r3 = -interval.lowerBound.abs().sqrt(n) + 0.01;
+		l3 = -thisCopy.interval.upperBound.abs().sqrt(n) - 0.01;
+		r3 = -thisCopy.interval.lowerBound.abs().sqrt(n) + 0.01;
 	}
 	else {
-		l3 = interval.lowerBound.sqrt(n) - 0.01;
-		r3 = interval.upperBound.sqrt(n) + 0.01;
+		l3 = thisCopy.interval.lowerBound.sqrt(n) - 0.01;
+		r3 = thisCopy.interval.upperBound.sqrt(n) + 0.01;
 	}
 
-	//while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
-	//	//auto f1 = RealAlgebraicNumber(polynomial, interval.lowerBound, r3);
-	//	this->refine();
-	//	if (n % 2 != 0 && interval.lowerBound < 0)
-	//	{
-	//		l3 = -interval.upperBound.abs().sqrt(n);
-	//		r3 = -interval.lowerBound.abs().sqrt(n);
-	//	}
-	//	else
-	//	{
-	//		l3 = interval.lowerBound.sqrt(n);
-	//		r3 = interval.upperBound.sqrt(n);
-	//	}
-	//}
+	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
+		//auto f1 = RealAlgebraicNumber(polynomial, interval.lowerBound, r3);
+		thisCopy.refine();
+		if (n % 2 != 0 && thisCopy.interval.lowerBound < 0)
+		{
+			l3 = -thisCopy.interval.upperBound.abs().sqrt(n);
+			r3 = -thisCopy.interval.lowerBound.abs().sqrt(n);
+		}
+		else
+		{
+			l3 = thisCopy.interval.lowerBound.sqrt(n);
+			r3 = thisCopy.interval.upperBound.sqrt(n);
+		}
+	}
 
 	return {f3, {.lowerBound = l3, .upperBound = r3}};
 }
@@ -660,45 +662,97 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 	MyMatrix<Polynomial> sylvesterMat = constructSylvesterMatrixForPower(thisCopy.polynomial, n);
 	Polynomial f3 = sylvesterMat.determinant();
 
+	std::vector<Polynomial> sturm;
+	if (f3.sturm_sequence.empty()) {
+		sturm = f3.sturmSequence(f3);
+	}
+	else
+	{
+		sturm = f3.sturm_sequence;
+	}
+
 	Rational l3;
 	Rational r3;
 
 	// Handle k > 0
-	if (this->interval.lowerBound >= 0) {
+	//if (this->interval.lowerBound >= 0) {
+	//	// Both endpoints are non-negative
+	//	l3 = this->interval.lowerBound.pow(n);
+	//	r3 = this->interval.upperBound.pow(n);
+	//}
+	//else if (this->interval.upperBound <= Rational(0)) {
+	//	// Both endpoints are non-positive
+	//	if (n % 2 == 0) {
+	//		// Even power: result is positive, order flips
+	//		l3 = this->interval.upperBound.pow(n);
+	//		r3 = this->interval.lowerBound.pow(n);
+	//	}
+	//	else {
+	//		// Odd power: result stays negative, order same
+	//		l3 = this->interval.lowerBound.pow(n);
+	//		r3 = this->interval.upperBound.pow(n);
+	//	}
+	//}
+	//else {
+	//	// Interval spans zero (lower < 0 < upper)
+	//	std::cout << "Interval spans zero, calculating min and max separately.\n";
+	//	auto minVal = Rational(0);
+	//	Rational lowerPowerN = this->interval.lowerBound.pow(n);
+	//	Rational upperPowerN = this->interval.upperBound.pow(n);
+	//	Rational maxVal = lowerPowerN > upperPowerN ? lowerPowerN : upperPowerN;
+
+	//	// If k is even, the minimum value will be 0.
+	//	// If k is odd, the minimum value will be lower.power(k).
+	//	if (n % 2 != 0) {
+	//		// Even power, like [-2, 3]^2 -> [0, 9]
+	//		minVal = lowerPowerN;
+	//		maxVal = upperPowerN;
+	//	}
+
+	//	l3 = minVal;
+	//	r3 = maxVal;
+	//}
+
+	if (thisCopy.interval.lowerBound >= 0) {
 		// Both endpoints are non-negative
-		l3 = this->interval.lowerBound.pow(n);
-		r3 = this->interval.upperBound.pow(n);
+		l3 = thisCopy.interval.lowerBound.pow(n);
+		r3 = thisCopy.interval.upperBound.pow(n);
 	}
-	else if (this->interval.upperBound <= Rational(0)) {
+	else if (thisCopy.interval.upperBound <= 0) {
 		// Both endpoints are non-positive
 		if (n % 2 == 0) {
 			// Even power: result is positive, order flips
-			l3 = this->interval.upperBound.pow(n);
-			r3 = this->interval.lowerBound.pow(n);
+			l3 = thisCopy.interval.upperBound.pow(n);
+			r3 = thisCopy.interval.lowerBound.pow(n);
 		}
 		else {
 			// Odd power: result stays negative, order same
-			l3 = this->interval.lowerBound.pow(n);
-			r3 = this->interval.upperBound.pow(n);
+			l3 = thisCopy.interval.lowerBound.pow(n);
+			r3 = thisCopy.interval.upperBound.pow(n);
 		}
 	}
-	else {
-		// Interval spans zero (lower < 0 < upper)
-		auto minVal = Rational(0);
-		Rational lowerPowerN = this->interval.lowerBound.pow(n);
-		Rational upperPowerN = this->interval.upperBound.pow(n);
-		Rational maxVal = lowerPowerN > upperPowerN ? lowerPowerN : upperPowerN;
 
-		// If k is even, the minimum value will be 0.
-		// If k is odd, the minimum value will be lower.power(k).
-		if (n % 2 != 0) {
-			// Even power, like [-2, 3]^2 -> [0, 9]
-			minVal = lowerPowerN;
-			maxVal = upperPowerN;
+	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
+		//auto f1 = RealAlgebraicNumber(polynomial, interval.lowerBound, r3);
+		thisCopy.refine();
+		if (thisCopy.interval.lowerBound >= 0) {
+			// Both endpoints are non-negative
+			l3 = thisCopy.interval.lowerBound.pow(n);
+			r3 = thisCopy.interval.upperBound.pow(n);
 		}
-
-		l3 = minVal;
-		r3 = maxVal;
+		else if (thisCopy.interval.upperBound <= 0) {
+			// Both endpoints are non-positive
+			if (n % 2 == 0) {
+				// Even power: result is positive, order flips
+				l3 = thisCopy.interval.upperBound.pow(n);
+				r3 = thisCopy.interval.lowerBound.pow(n);
+			}
+			else {
+				// Odd power: result stays negative, order same
+				l3 = thisCopy.interval.lowerBound.pow(n);
+				r3 = thisCopy.interval.upperBound.pow(n);
+			}
+		}
 	}
 
 	f3.normalize(l3, r3);
@@ -713,7 +767,7 @@ bool RealAlgebraicNumber::isZero() const {
 }
 
 void RealAlgebraicNumber::testOperators() {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	RealAlgebraicNumber a = 2;
 	RealAlgebraicNumber b = 3;
 	auto c = RealAlgebraicNumber({-2, 0, 1}, {.lowerBound = {1, 1}, .upperBound = {2, 1}}); // sqrt(2)
@@ -735,13 +789,13 @@ void RealAlgebraicNumber::testOperators() {
 		std::cout << "operator+ not working!\n";
 	if (a - b != f || c - d != h)
 		std::cout << "operator- not working!\n";
-	if (a + b - b != a || c + d - c != d) // TODO: c+d-c seems to be wrong, check operator+ ?
+	if (a + b - b != a || c + d - c != d)
 		std::cout << "operator+ and operator- not working together!\n";
 	if (a * b != i || c * d != l)
 		std::cout << "operator* not working!\n";
 	if (a / b != j || c / d != k)
 		std::cout << "operator/ not working!\n";
-	if ((a * b) / b != a || (c * d) / c != d) // TODO: c*d/c seems to be wrong, check operator* ?
+	if ((a * b) / b != a || (c * d) / c != d)
 		std::cout << "operator* and operator/ not working together!\n";
 
 	auto aa = a;
@@ -783,13 +837,12 @@ void RealAlgebraicNumber::testOperators() {
 	if (a.inverse() != invA || c.inverse() != invC)
 		std::cout << "inverse() not working!\n";
 	if (a.inverse().inverse() != a || c.inverse().inverse() != c)
-		// TODO: a.inverse().inverse() == a (factoring not complete)
 		std::cout << "double inverse() not working!\n";
 	if (a.sqrt() != c || b.sqrt() != d)
 		std::cout << "sqrt() not working!\n";
 	if (c.pow(2) != a || d.pow(2) != b)
 		std::cout << "pow() not working!\n";
-	if (b.pow(2).sqrt() != b || d.sqrt().pow(2) != d) // TODO: d.sqrt().pow(2) == d (pow issue? or sqrt interval)
+	if (b.pow(2).sqrt() != b || d.sqrt().pow(2) != d)
 		std::cout << "sqrt() and pow() not working together! (1)\n";
 	if (a.sqrt().pow(2) != a || c.pow(2).sqrt() != c)
 		std::cout << "sqrt() and pow() not working together! (2)\n";
@@ -798,7 +851,7 @@ void RealAlgebraicNumber::testOperators() {
 }
 
 int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequence) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	int variations = 0;
 	int prevSign = 0;
 

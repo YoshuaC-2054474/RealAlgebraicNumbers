@@ -196,22 +196,57 @@ Rational& Rational::operator-=(const Rational& other) {
 	return *this;
 }
 
+//Rational& Rational::operator*=(const Rational& other) {
+//	PROFILE_FUNCTION
+//	numerator = numerator * other.numerator;
+//	denominator = denominator * other.denominator;
+//	simplify();
+//	return *this;
+//}
+
 Rational& Rational::operator*=(const Rational& other) {
 	PROFILE_FUNCTION
-	numerator = numerator * other.numerator;
-	denominator = denominator * other.denominator;
-	simplify();
+	const cpp_int gcd1 = boost::multiprecision::gcd(numerator, other.denominator);
+	const cpp_int gcd2 = boost::multiprecision::gcd(other.numerator, denominator);
+
+	numerator = (numerator/gcd1) * (other.numerator/gcd2);
+	denominator = (denominator / gcd2) * (other.denominator / gcd1);
+	//simplify();
+	/*if (denominator < 0) {
+		numerator = -numerator;
+		denominator = -denominator;
+	}*/
 	return *this;
 }
+
+//Rational& Rational::operator/=(const Rational& other) {
+//	PROFILE_FUNCTION
+//	if (other.numerator == 0) {
+//		throw std::overflow_error("Division by zero (rational number has zero numerator).");
+//	}
+//	numerator = numerator * other.denominator;
+//	denominator = denominator * other.numerator;
+//	simplify();
+//	return *this;
+//}
 
 Rational& Rational::operator/=(const Rational& other) {
 	PROFILE_FUNCTION
 	if (other.numerator == 0) {
 		throw std::overflow_error("Division by zero (rational number has zero numerator).");
 	}
-	numerator = numerator * other.denominator;
-	denominator = denominator * other.numerator;
-	simplify();
+	if (numerator == 0) return *this;
+
+	const cpp_int gcd1 = boost::multiprecision::gcd(numerator, other.numerator); // GCD of this->num and other.num (new denominator)
+	const cpp_int gcd2 = boost::multiprecision::gcd(other.denominator, denominator);            // GCD of other.den (new numerator) and this->den
+
+	numerator = (numerator / gcd1) * (other.denominator / gcd2);
+	denominator = (denominator / gcd2) * (other.numerator / gcd1);
+	//simplify();
+	if (denominator < 0) {
+		numerator = -numerator;
+		denominator = -denominator;
+	}
 	return *this;
 }
 
@@ -230,7 +265,7 @@ Rational operator-(const Rational& lhs, const Rational& rhs) {
 }
 
 Rational Rational::operator-() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return {-numerator, denominator};
 }
 
@@ -250,32 +285,32 @@ Rational operator/(const Rational& lhs, const Rational& rhs) {
 
 // Comparison Operators
 bool Rational::operator==(const Rational& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return numerator * other.denominator == other.numerator * denominator;
 }
 
 bool Rational::operator!=(const Rational& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return !(*this == other);
 }
 
 bool Rational::operator<(const Rational& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return numerator * other.denominator < other.numerator * denominator;
 }
 
 bool Rational::operator>(const Rational& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return other < *this;
 }
 
 bool Rational::operator<=(const Rational& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return !(*this > other);
 }
 
 bool Rational::operator>=(const Rational& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return !(*this < other);
 }
 
@@ -288,13 +323,13 @@ Rational Rational::abs() const {
 }
 
 Rational Rational::inverse() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (numerator == 0) throw std::invalid_argument("Cannot invert zero");
 	return {denominator, numerator};
 }
 
 double Rational::sqrt(const int n) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (n == 0) throw std::invalid_argument("Zeroth root is undefined");
 	if (n % 2 == 0 && numerator < 0)
 		throw std::invalid_argument("Even root of negative number");
@@ -303,18 +338,18 @@ double Rational::sqrt(const int n) const {
 }
 
 Rational Rational::pow(const int n) const {
+	//PROFILE_FUNCTION
 	if (n == 0) return 1;
 	if (n < 0) return Rational(denominator, numerator).pow(-n);
 	// For negative exponents, take reciprocal and positive power
 
-	// If using boost::multiprecision::cpp_int:
 	const cpp_int resNum = boost::multiprecision::pow(numerator, n);
 	const cpp_int resDen = boost::multiprecision::pow(denominator, n);
 	return {resNum, resDen};
 }
 
 Rational Rational::gcd(const Rational& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	cpp_int numGcd = boost::multiprecision::gcd(numerator * other.denominator, other.numerator * denominator);
 	cpp_int denLcm = (denominator * other.denominator); // / boost::multiprecision::gcd(denominator, other.denominator);
 	return {numGcd, denLcm};

@@ -30,7 +30,7 @@ Polynomial::Polynomial(const int zeroCoeff) {
 }
 
 Rational findGcd(const std::vector<Rational>& arr) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	Rational res = arr[0];
 
 	for (size_t i = 1; i < arr.size(); i++) {
@@ -243,7 +243,7 @@ bool Polynomial::isZero() const {
 }
 
 Polynomial Polynomial::operator+(const Polynomial& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	/*std::vector<Rational> result = coefficients;
 	for (size_t i = 0; i < other.coefficients.size(); i++) {
 		while (result.size() <= i) result.emplace_back(0);
@@ -329,7 +329,7 @@ Polynomial Polynomial::operator/(const Rational& scalar) const {
 }
 
 bool Polynomial::operator==(const Polynomial& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (degree != other.degree) return false;
 
 	for (size_t i = 0; i < coefficients.size(); i++) {
@@ -370,7 +370,7 @@ Rational Polynomial::evaluate(const Rational& x) const {
 }
 
 Polynomial Polynomial::derivative() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (isZero()) return {};
 	std::vector<Rational> result(degree, 0);
 	for (int i = 1; i <= degree; ++i) {
@@ -433,7 +433,7 @@ std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(
 }
 
 std::vector<Rational> Polynomial::polyNegate(const std::vector<Rational>& poly) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	std::vector<Rational> neg(poly.size());
 	for (size_t i = 0; i < poly.size(); i++) {
 		neg[i] = -poly[i];
@@ -442,7 +442,7 @@ std::vector<Rational> Polynomial::polyNegate(const std::vector<Rational>& poly) 
 }
 
 Polynomial Polynomial::reflectY() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	std::vector<Rational> result = coefficients;
 	const int coeffLength = static_cast<int>(result.size());
 	for (int i = coeffLength - 1; i >= 0; i--) {

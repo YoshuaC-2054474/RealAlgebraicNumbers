@@ -133,7 +133,7 @@ void testingFunction() {
 
 int main() {
 	InitializePerformanceFrequency();
-	for (int i = 0; i < 1; ++i) {
+	for (int i = 0; i < 200; ++i) {
 		std::cout << i;
 		testingFunction();
 	}

@@ -110,8 +110,8 @@ private:
 	static int variationCount(const std::vector<Polynomial>& sturm, const Rational& x);
 
 	void normalize();
-
 	void refine();
+	void refineToTolerance();
 };
 
 #endif

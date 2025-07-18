@@ -25,13 +25,12 @@ public:
 	}
 
 	void normalize(const Rational& lowerBound, const Rational& upperBound);
-	void testNormalize();
 
 	// Check if the polynomial is zero
 	bool isZero() const;
 
 	Rational coeff(const int idx) const {
-		if (idx < 0 || idx >= coefficients.size()) {
+		if (idx < 0 || idx >= static_cast<int>(coefficients.size())) {
 			return 0;
 		}
 		return coefficients[idx];

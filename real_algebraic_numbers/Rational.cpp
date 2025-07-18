@@ -3,6 +3,7 @@
 #include <cmath>
 #include <sstream>
 #include <numeric>
+#include <vector>
 
 #include "MyTimer.h"
 
@@ -11,43 +12,41 @@ void Rational::simplify() {
 	if (denominator == 0) {
 		throw std::invalid_argument("Denominator cannot be zero");
 	}
-	const cpp_int g = boost::multiprecision::gcd(numerator, denominator);
-	numerator /= g;
-	denominator /= g;
-
+	
+	// Early exit for already simplified cases
+	if (numerator == 0) {
+		denominator = 1;
+		return;
+	}
+	
+	// Handle sign normalization first
 	if (denominator < 0) {
 		numerator = -numerator;
 		denominator = -denominator;
 	}
+	
+	const cpp_int g = boost::multiprecision::gcd(numerator, denominator);
+	if (g > 1) {
+		numerator /= g;
+		denominator /= g;
+	}
 }
 
-Rational::Rational(const cpp_int& num, const cpp_int& den) {
-	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
-	numerator = num;
-	denominator = den;
+Rational::Rational(const cpp_int& num, const cpp_int& den) : numerator(num), denominator(den) {
 	simplify();
 }
 
-Rational::Rational(const int num, const int den) {
-	if (den == 0) throw std::invalid_argument("Denominator cannot be zero");
-	numerator = cpp_int(num);
-	denominator = cpp_int(den);
+Rational::Rational(const int num, const int den) : numerator(num), denominator(den) {
 	simplify();
 }
 
-Rational::Rational(const cpp_int& numerator) {
-	this->numerator = numerator;
-	this->denominator = 1;
+Rational::Rational(const cpp_int& numerator) : numerator(numerator), denominator(1) {
 }
 
-Rational::Rational(const int numerator) {
-	this->numerator = cpp_int(numerator);
-	this->denominator = 1;
+Rational::Rational(const int numerator) : numerator(numerator), denominator(1) {
 }
 
-Rational::Rational(const long long numerator) {
-	this->numerator = cpp_int(numerator);
-	this->denominator = 1;
+Rational::Rational(const long long numerator) : numerator(numerator), denominator(1) {
 }
 
 Rational::Rational(const double numerator, const cpp_int& maxDenominator) {
@@ -102,7 +101,17 @@ Rational::Rational(const Rational& other) = default;
 std::string Rational::toString() const {
 	PROFILE_FUNCTION
 	if (denominator == 1) return numerator.str();
-	return numerator.str() + "/" + denominator.str();
+	
+	// Pre-allocate string with estimated size to avoid reallocations
+	std::string result;
+	const std::string numStr = numerator.str();
+	const std::string denStr = denominator.str();
+	result.reserve(numStr.length() + denStr.length() + 1);
+	
+	result = numStr;
+	result += '/';
+	result += denStr;
+	return result;
 }
 
 std::string Rational::toDecimalString(int precision) const {
@@ -182,6 +191,29 @@ Rational Rational::operator%(const Rational& other) const {
 // Assignment Operators
 Rational& Rational::operator+=(const Rational& other) {
 	PROFILE_FUNCTION
+	
+	// Handle zero cases
+	if (other.numerator == 0) return *this;
+	if (numerator == 0) {
+		*this = other;
+		return *this;
+	}
+	
+	// Optimize for same denominators
+	if (denominator == other.denominator) {
+		numerator += other.numerator;
+		if (numerator != 0) {
+			const cpp_int g = boost::multiprecision::gcd(numerator, denominator);
+			if (g > 1) {
+				numerator /= g;
+				denominator /= g;
+			}
+		} else {
+			denominator = 1;
+		}
+		return *this;
+	}
+	
 	numerator = numerator * other.denominator + other.numerator * denominator;
 	denominator = denominator * other.denominator;
 	simplify();
@@ -190,6 +222,30 @@ Rational& Rational::operator+=(const Rational& other) {
 
 Rational& Rational::operator-=(const Rational& other) {
 	PROFILE_FUNCTION
+	
+	// Handle zero cases
+	if (other.numerator == 0) return *this;
+	if (numerator == 0) {
+		numerator = -other.numerator;
+		denominator = other.denominator;
+		return *this;
+	}
+	
+	// Optimize for same denominators
+	if (denominator == other.denominator) {
+		numerator -= other.numerator;
+		if (numerator != 0) {
+			const cpp_int g = boost::multiprecision::gcd(numerator, denominator);
+			if (g > 1) {
+				numerator /= g;
+				denominator /= g;
+			}
+		} else {
+			denominator = 1;
+		}
+		return *this;
+	}
+	
 	numerator = numerator * other.denominator - other.numerator * denominator;
 	denominator = denominator * other.denominator;
 	simplify();
@@ -206,16 +262,36 @@ Rational& Rational::operator-=(const Rational& other) {
 
 Rational& Rational::operator*=(const Rational& other) {
 	PROFILE_FUNCTION
+	
+	// Handle zero cases early
+	if (numerator == 0 || other.numerator == 0) {
+		numerator = 0;
+		denominator = 1;
+		return *this;
+	}
+	
+	// Handle unit cases
+	if (other.numerator == other.denominator) {
+		return *this; // Multiplying by 1
+	}
+	if (numerator == denominator) {
+		*this = other; // This is 1, so result is other
+		return *this;
+	}
+	
+	// Cross-reduce to prevent intermediate overflow
 	const cpp_int gcd1 = boost::multiprecision::gcd(numerator, other.denominator);
 	const cpp_int gcd2 = boost::multiprecision::gcd(other.numerator, denominator);
 
-	numerator = (numerator/gcd1) * (other.numerator/gcd2);
+	numerator = (numerator / gcd1) * (other.numerator / gcd2);
 	denominator = (denominator / gcd2) * (other.denominator / gcd1);
-	//simplify();
-	/*if (denominator < 0) {
+	
+	// Handle sign normalization
+	if (denominator < 0) {
 		numerator = -numerator;
 		denominator = -denominator;
-	}*/
+	}
+	
 	return *this;
 }
 
@@ -236,17 +312,25 @@ Rational& Rational::operator/=(const Rational& other) {
 		throw std::overflow_error("Division by zero (rational number has zero numerator).");
 	}
 	if (numerator == 0) return *this;
-
-	const cpp_int gcd1 = boost::multiprecision::gcd(numerator, other.numerator); // GCD of this->num and other.num (new denominator)
-	const cpp_int gcd2 = boost::multiprecision::gcd(other.denominator, denominator);            // GCD of other.den (new numerator) and this->den
+	
+	// Handle unit cases
+	if (other.numerator == other.denominator) {
+		return *this; // Dividing by 1
+	}
+	
+	// Cross-reduce to prevent intermediate overflow
+	const cpp_int gcd1 = boost::multiprecision::gcd(numerator, other.numerator);
+	const cpp_int gcd2 = boost::multiprecision::gcd(other.denominator, denominator);
 
 	numerator = (numerator / gcd1) * (other.denominator / gcd2);
 	denominator = (denominator / gcd2) * (other.numerator / gcd1);
-	//simplify();
+	
+	// Handle sign normalization
 	if (denominator < 0) {
 		numerator = -numerator;
 		denominator = -denominator;
 	}
+	
 	return *this;
 }
 
@@ -265,8 +349,7 @@ Rational operator-(const Rational& lhs, const Rational& rhs) {
 }
 
 Rational Rational::operator-() const {
-	//PROFILE_FUNCTION
-	return {-numerator, denominator};
+	return Rational(-numerator, denominator);
 }
 
 Rational operator*(const Rational& lhs, const Rational& rhs) {
@@ -285,72 +368,121 @@ Rational operator/(const Rational& lhs, const Rational& rhs) {
 
 // Comparison Operators
 bool Rational::operator==(const Rational& other) const {
-	//PROFILE_FUNCTION
+	// Fast path for identical denominators
+	if (denominator == other.denominator) {
+		return numerator == other.numerator;
+	}
 	return numerator * other.denominator == other.numerator * denominator;
 }
 
 bool Rational::operator!=(const Rational& other) const {
-	//PROFILE_FUNCTION
 	return !(*this == other);
 }
 
 bool Rational::operator<(const Rational& other) const {
-	//PROFILE_FUNCTION
+	// Fast path for identical denominators
+	if (denominator == other.denominator) {
+		return numerator < other.numerator;
+	}
+	
+	// Check signs first for quick comparison
+	const bool thisNeg = numerator < 0;
+	const bool otherNeg = other.numerator < 0;
+	
+	if (thisNeg && !otherNeg) return true;
+	if (!thisNeg && otherNeg) return false;
+	
 	return numerator * other.denominator < other.numerator * denominator;
 }
 
 bool Rational::operator>(const Rational& other) const {
-	//PROFILE_FUNCTION
 	return other < *this;
 }
 
 bool Rational::operator<=(const Rational& other) const {
-	//PROFILE_FUNCTION
 	return !(*this > other);
 }
 
 bool Rational::operator>=(const Rational& other) const {
-	//PROFILE_FUNCTION
 	return !(*this < other);
 }
 
 // Utility Methods
 Rational Rational::abs() const {
 	PROFILE_FUNCTION
-	if (numerator >= 0) return *this;
-	return {-numerator, denominator};
-	//return { mpz_class::abs(numerator), denominator.abs()};
+	return numerator >= 0 ? *this : Rational(-numerator, denominator);
 }
 
 Rational Rational::inverse() const {
-	//PROFILE_FUNCTION
 	if (numerator == 0) throw std::invalid_argument("Cannot invert zero");
-	return {denominator, numerator};
+	return Rational(denominator, numerator);
 }
 
 double Rational::sqrt(const int n) const {
-	//PROFILE_FUNCTION
 	if (n == 0) throw std::invalid_argument("Zeroth root is undefined");
 	if (n % 2 == 0 && numerator < 0)
 		throw std::invalid_argument("Even root of negative number");
+	if (n == 1) return numerator.convert_to<double>() / denominator.convert_to<double>();
+	
 	const double val = numerator.convert_to<double>() / denominator.convert_to<double>();
 	return std::pow(val, 1.0 / n);
 }
 
 Rational Rational::pow(const int n) const {
-	//PROFILE_FUNCTION
-	if (n == 0) return 1;
-	if (n < 0) return Rational(denominator, numerator).pow(-n);
-	// For negative exponents, take reciprocal and positive power
+	if (n == 0) return Rational(1);
+	if (n == 1) return *this;
+	if (n < 0) {
+		if (numerator == 0) throw std::invalid_argument("Cannot raise zero to negative power");
+		return Rational(denominator, numerator).pow(-n);
+	}
 
 	const cpp_int resNum = boost::multiprecision::pow(numerator, n);
 	const cpp_int resDen = boost::multiprecision::pow(denominator, n);
-	return {resNum, resDen};
+	return Rational(resNum, resDen);
 }
 
 Rational Rational::gcd(const Rational& other) const {
-	//PROFILE_FUNCTION
-	cpp_int numGcd = boost::multiprecision::gcd(numerator * other.denominator, other.numerator * denominator);
-	cpp_int denLcm = (denominator * other.denominator); // / boost::multiprecision::gcd(denominator, other.denominator);
-	return {numGcd, denLcm};
+	const cpp_int numGcd = boost::multiprecision::gcd(numerator * other.denominator, other.numerator * denominator);
+	const cpp_int denLcm = denominator * other.denominator;
+	return Rational(numGcd, denLcm);
+}
+
+bool Rational::isInteger() const {
+	return denominator == 1;
+}
+
+std::vector<cpp_int> Rational::factorNumerator() const {
+	std::vector<cpp_int> factors;
+	cpp_int n = boost::multiprecision::abs(numerator);
+	
+	if (n == 0) {
+		factors.push_back(0);
+		return factors;
+	}
+	
+	if (n == 1) {
+		factors.push_back(1);
+		return factors;
+	}
+	
+	// Factor out 2s
+	while (n % 2 == 0) {
+		factors.push_back(2);
+		n /= 2;
+	}
+	
+	// Check odd factors from 3 onwards
+	for (cpp_int i = 3; i * i <= n; i += 2) {
+		while (n % i == 0) {
+			factors.push_back(i);
+			n /= i;
+		}
+	}
+	
+	// If n is still greater than 1, it's a prime factor
+	if (n > 1) {
+		factors.push_back(n);
+	}
+	
+	return factors;
 }

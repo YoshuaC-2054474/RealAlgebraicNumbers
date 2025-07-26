@@ -28,6 +28,7 @@ public:
 	RealAlgebraicNumber(const std::vector<Rational>& coefficients, const Rational& lowerBound,
 	                    const Rational& upperBound);
 	RealAlgebraicNumber(int value);
+	RealAlgebraicNumber(const Rational& value);
 	RealAlgebraicNumber(double value);
 
 	//RealAlgebraicNumber fromInteger(const int n);
@@ -78,17 +79,18 @@ public:
 	bool isZero() const;
 	bool isPositive() const;
 	bool isNegative() const;
-	int sign() const;
+	//int sign() const;
 
-	std::vector<int> getRoots() const;
-	std::vector<int> getInterval() const;
-	std::vector<int> getPolynomial() const;
-	int getDegree() const;
+	//std::vector<int> getRoots() const;
+	//Interval getInterval() const;
+	//Polynomial getPolynomial() const;
+	//int getDegree() const;
 
 	std::string toString() const;
 	std::string toDecimalString(int precision = 10) const;
 
 	static void testOperators();
+	static void extensiveTest();
 
 private:
 	friend long long binomialCoeff(int n, int k);

@@ -15,7 +15,8 @@ void testingFunction() {
 	/*auto a = RealAlgebraicNumber({ -2,1,2 }, { {75,100},{8,10} });
 	auto b = RealAlgebraicNumber({ -3,1,3 }, { {8,10},{85,100} });*/
 	try {
-		RealAlgebraicNumber().testOperators();
+		//RealAlgebraicNumber().testOperators();
+		RealAlgebraicNumber().extensiveTest();
 
 
 		auto a = RealAlgebraicNumber({-60, 42, -128, 256, -12, 10}, {{50, 100}, {1, 1}});
@@ -133,7 +134,7 @@ void testingFunction() {
 
 int main() {
 	InitializePerformanceFrequency();
-	for (int i = 0; i < 200; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		std::cout << i;
 		testingFunction();
 	}

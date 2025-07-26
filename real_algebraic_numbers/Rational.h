@@ -72,9 +72,10 @@ public:
 	std::vector<cpp_int> factorNumerator() const;
 	bool isInteger() const;
 
-private:
 	cpp_int numerator;
 	cpp_int denominator;
+private:
+	
 
 	void simplify();
 

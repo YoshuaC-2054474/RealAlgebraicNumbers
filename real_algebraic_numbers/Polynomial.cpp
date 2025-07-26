@@ -88,6 +88,15 @@ void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBoun
 
 	if (coefficients.empty()) return;
 
+	// Remove all denominators
+	//for (Rational& coeff : coefficients) {
+	//	if (coeff.denominator != 1) {
+	//		for (Rational& coeff2 : coefficients) {
+	//			coeff2 *= coeff.denominator; // Multiply all coefficients by the denominator
+	//		}
+	//	}
+	//}
+
 	// Divide by GCD
 	if (const Rational gcd = findGcd(coefficients); gcd > 1) {
 		for (Rational& coeff : coefficients) {
@@ -107,10 +116,10 @@ void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBoun
 		}
 	}
 
-	// Make leading coefficient positive
-	if (!coefficients.empty() && coefficients.back() < 0) {
+	// Make leading coefficient (positive) 1
+	if (!coefficients.empty() && coefficients.back() != 0) {
 		for (Rational& coeff : coefficients) {
-			coeff *= -1;
+			coeff /= coefficients.back();
 		}
 	}
 

@@ -27,10 +27,13 @@ public:
 		//return { numerator.convert_to<int>(), denominator.convert_to<int>() };
 	}
 
-	/*friend std::ostream& operator<<(std::ostream& os, const Rational& rational) {
-	    os << rational.numerator << "/" << rational.denominator;
-	    return os;
-	}*/
+	friend std::ostream& operator<<(std::ostream& os, const Rational& rational) {
+		os << rational.numerator;
+		if (rational.denominator != 1) {
+			os << "/" << rational.denominator;
+		}
+		return os;
+	}
 
 	explicit operator double() const {
 		return numerator.convert_to<double>() / denominator.convert_to<double>();

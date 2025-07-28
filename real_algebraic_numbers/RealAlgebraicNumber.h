@@ -86,6 +86,7 @@ public:
 	//Polynomial getPolynomial() const;
 	//int getDegree() const;
 
+	friend std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran);
 	std::string toString() const;
 	std::string toDecimalString(int precision = 10) const;
 

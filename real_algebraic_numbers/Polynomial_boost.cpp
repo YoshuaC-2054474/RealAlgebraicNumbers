@@ -42,7 +42,8 @@ Rational findGcd(const std::vector<Rational>& arr) {
 
 	Rational res = arr[0];
 	for (size_t i = 1; i < arr.size(); ++i) {
-		res = arr[i].gcd(res);
+		res = boost::multiprecision::gcd(arr[i].numerator(), res.numerator()) / boost::multiprecision::lcm(
+			arr[i].denominator(), res.denominator());
 		if (res == 1) return {1};
 	}
 	return res;
@@ -54,7 +55,7 @@ std::vector<Polynomial> minimalPolynomialsNtl(const Polynomial& poly) {
 	f.SetMaxLength(static_cast<long>(poly.coefficients.size()));
 
 	for (long i = 0; i < static_cast<long>(poly.coefficients.size()); ++i) {
-		SetCoeff(f, i, to_ZZ(poly.coefficients[i].toInt()));
+		SetCoeff(f, i, to_ZZ(boost::rational_cast<int>(poly.coefficients[i])));
 	}
 
 	Vec<Pair<ZZX, long>> factors;
@@ -91,8 +92,11 @@ void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBoun
 	// turn x^2 + 3/2x into 2x^2 + 3x
 	std::vector<cpp_int> allDenominators;
 	for (const Rational& coeff : coefficients) {
-		if (coeff.denominator != 1) {
+		/*if (coeff.denominator != 1) {
 			allDenominators.push_back(coeff.denominator);
+		}*/
+		if (coeff.denominator() != 1) {
+			allDenominators.push_back(coeff.denominator());
 		}
 	}
 	for (const cpp_int& denom : allDenominators) {
@@ -220,9 +224,11 @@ std::string Polynomial::toString() const {
 		if (coefficients[i] > 0 && !output.empty()) output += " + ";
 		else if (coefficients[i] < 0) output += " - ";
 
-		const Rational absCoeff = coefficients[i].abs();
+		//const Rational absCoeff = coefficients[i].abs();
+		const Rational absCoeff = abs(coefficients[i]);
 		if (absCoeff != 1 || i == 0) {
-			output += absCoeff.toString();
+			//output += absCoeff.toString();
+			output += absCoeff.numerator().str(10, 10) + "/" + absCoeff.denominator().str(10, 10);
 		}
 
 		if (i > 1) {
@@ -266,7 +272,10 @@ Polynomial Polynomial::polyTrim(const Polynomial& poly) {
 	Polynomial result = poly;
 
 	// Remove trailing zeros with a small epsilon tolerance
-	while (result.coefficients.size() > 1 && result.coefficients.back().abs() < 1e-9) {
+	/*while (result.coefficients.size() > 1 && result.coefficients.back().abs() < 1e-9) {
+		result.coefficients.pop_back();
+	}*/
+	while (result.coefficients.size() > 1 && abs(result.coefficients.back()) < cpp_int(1e-9)) {
 		result.coefficients.pop_back();
 	}
 
@@ -307,7 +316,10 @@ std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(
 		}
 
 		// Remove leading zero
-		if (!remainder.empty() && remainder.back().abs() < 1e-9) {
+		/*if (!remainder.empty() && remainder.back().abs() < 1e-9) {
+			remainder.pop_back();
+		}*/
+		if (!remainder.empty() && abs(remainder.back()) < cpp_int(1e-9)) {
 			remainder.pop_back();
 		}
 	}
@@ -367,7 +379,10 @@ std::vector<Polynomial> Polynomial::sturmSequence(const Polynomial& p) {
 		auto [quotient, remainder] = polyDivide(sPrev, sCurr);
 
 		// If remainder is zero, stop
-		if (remainder.empty() || (remainder.size() == 1 && remainder[0].abs() < 1e-9)) {
+		/*if (remainder.empty() || (remainder.size() == 1 && remainder[0].abs() < 1e-9)) {
+			break;
+		}*/
+		if (remainder.empty() || (remainder.size() == 1 && abs(remainder[0]) < cpp_int(1e-9))) {
 			break;
 		}
 

@@ -22,7 +22,7 @@
 
 // Helper function to print a RealAlgebraicNumber
 static void printRAN(const std::string& name, const RealAlgebraicNumber& ran) {
-	std::cout << name << " = " << ran.toString() << " (Decimal: " << ran.toDecimalString(15) << ")\n";
+	std::cout << name << " = " << ran.toString() << "\n"; //" (Decimal: " << ran.toDecimalString(15) << ")\n";
 }
 
 // Hash specialization for std::pair<int, int>
@@ -207,7 +207,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& p, const
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber()
-	: polynomial({0, 1}), interval({.lowerBound = 0.0, .upperBound = 0.0}) {}
+	: polynomial({0, 1}), interval({.lowerBound = 0, .upperBound = 0}) {}
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Polynomial& polynomial, const Interval& interval)
 	: polynomial(polynomial), interval(interval) {
@@ -235,22 +235,23 @@ RealAlgebraicNumber::RealAlgebraicNumber(const int value)
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Rational& value)
-	: polynomial({{-value.numerator, 1}, {value.denominator, 1}}), interval{.lowerBound = value, .upperBound = value} {
+	: polynomial({{-value.numerator(), 1}, {value.denominator(), 1}}),
+	  interval{.lowerBound = value, .upperBound = value} {
 	//this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
 }
 
-RealAlgebraicNumber::RealAlgebraicNumber(const double value) {
-	const Rational rationalValue(value);
-	this->polynomial = Polynomial({{-rationalValue.numerator, 1}, {rationalValue.denominator, 1}});
-	this->interval.lowerBound = rationalValue;
-	this->interval.upperBound = rationalValue;
-	//this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
-}
+//RealAlgebraicNumber::RealAlgebraicNumber(const double value) {
+//	const Rational rationalValue(value);
+//	this->polynomial = Polynomial({{-rationalValue.numerator, 1}, {rationalValue.denominator, 1}});
+//	this->interval.lowerBound = rationalValue;
+//	this->interval.upperBound = rationalValue;
+//	//this->polynomial.normalize(this->interval.lowerBound, this->interval.upperBound);
+//}
 
 void RealAlgebraicNumber::refineToTolerance() {
 	PROFILE_FUNCTION
 	const Rational tolerance(1, 100); // 0.01
-	while ((this->interval.lowerBound - this->interval.upperBound).abs() > tolerance) {
+	while ((this->interval.lowerBound - boost::abs(this->interval.upperBound)) > tolerance) {
 		refine();
 	}
 }
@@ -544,7 +545,7 @@ RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
 	std::reverse_copy(polynomial.coefficients.begin(), polynomial.coefficients.end(),
 	                  std::back_inserter(inverseCo));
 
-	return {inverseCo, interval.upperBound.inverse(), interval.lowerBound.inverse()};
+	return {inverseCo, 1 / interval.upperBound, 1 / interval.lowerBound};
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::abs() const {
@@ -607,25 +608,31 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) const {
 	Rational l3;
 	Rational r3;
 
+	double absUpper = rational_cast<double>(boost::abs(thisCopy.interval.upperBound));
+	double absLower = rational_cast<double>(boost::abs(thisCopy.interval.lowerBound));
+
 	if (n % 2 != 0 && interval.lowerBound < 0) {
-		l3 = -thisCopy.interval.upperBound.abs().sqrt(n) - 0.01;
-		r3 = -thisCopy.interval.lowerBound.abs().sqrt(n) + 0.01;
+		l3 = static_cast<int>(std::ceil(-std::sqrt(absUpper) + 0.01));
+		r3 = static_cast<int>(std::floor(-std::sqrt(absLower) - 0.01));
 	}
 	else {
-		l3 = thisCopy.interval.lowerBound.sqrt(n) - 0.01;
-		r3 = thisCopy.interval.upperBound.sqrt(n) + 0.01;
+		l3 = static_cast<int>(std::floor(std::sqrt(absLower) - 0.01));
+		r3 = static_cast<int>(std::ceil(std::sqrt(absUpper) + 0.01));
 	}
 
 	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
 		//auto f1 = RealAlgebraicNumber(polynomial, interval.lowerBound, r3);
 		thisCopy.refine();
+		absUpper = rational_cast<double>(boost::abs(thisCopy.interval.upperBound));
+		absLower = rational_cast<double>(boost::abs(thisCopy.interval.lowerBound));
+
 		if (n % 2 != 0 && thisCopy.interval.lowerBound < 0) {
-			l3 = -thisCopy.interval.upperBound.abs().sqrt(n);
-			r3 = -thisCopy.interval.lowerBound.abs().sqrt(n);
+			l3 = static_cast<int>(std::ceil(-std::sqrt(absUpper) + 0.01));
+			r3 = static_cast<int>(std::floor(-std::sqrt(absLower) - 0.01));
 		}
 		else {
-			l3 = thisCopy.interval.lowerBound.sqrt(n);
-			r3 = thisCopy.interval.upperBound.sqrt(n);
+			l3 = static_cast<int>(std::floor(std::sqrt(absLower) - 0.01));
+			r3 = static_cast<int>(std::ceil(std::sqrt(absUpper) + 0.01));
 		}
 	}
 
@@ -663,20 +670,26 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 
 	if (thisCopy.interval.lowerBound >= 0) {
 		// Both endpoints are non-negative
-		l3 = thisCopy.interval.lowerBound.pow(n);
-		r3 = thisCopy.interval.upperBound.pow(n);
+		l3 = Rational(boost::multiprecision::pow(thisCopy.interval.lowerBound.numerator(), n),
+		              boost::multiprecision::pow(thisCopy.interval.lowerBound.denominator(), n));
+		r3 = Rational(boost::multiprecision::pow(thisCopy.interval.upperBound.numerator(), n),
+		              boost::multiprecision::pow(thisCopy.interval.upperBound.denominator(), n));
 	}
 	else if (thisCopy.interval.upperBound <= 0) {
 		// Both endpoints are non-positive
 		if (n % 2 == 0) {
 			// Even power: result is positive, order flips
-			l3 = thisCopy.interval.upperBound.pow(n);
-			r3 = thisCopy.interval.lowerBound.pow(n);
+			r3 = Rational(boost::multiprecision::pow(thisCopy.interval.lowerBound.numerator(), n),
+			              boost::multiprecision::pow(thisCopy.interval.lowerBound.denominator(), n));
+			l3 = Rational(boost::multiprecision::pow(thisCopy.interval.upperBound.numerator(), n),
+			              boost::multiprecision::pow(thisCopy.interval.upperBound.denominator(), n));
 		}
 		else {
 			// Odd power: result stays negative, order same
-			l3 = thisCopy.interval.lowerBound.pow(n);
-			r3 = thisCopy.interval.upperBound.pow(n);
+			l3 = Rational(boost::multiprecision::pow(thisCopy.interval.lowerBound.numerator(), n),
+			              boost::multiprecision::pow(thisCopy.interval.lowerBound.denominator(), n));
+			r3 = Rational(boost::multiprecision::pow(thisCopy.interval.upperBound.numerator(), n),
+			              boost::multiprecision::pow(thisCopy.interval.upperBound.denominator(), n));
 		}
 	}
 
@@ -685,20 +698,26 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 		thisCopy.refine();
 		if (thisCopy.interval.lowerBound >= 0) {
 			// Both endpoints are non-negative
-			l3 = thisCopy.interval.lowerBound.pow(n);
-			r3 = thisCopy.interval.upperBound.pow(n);
+			l3 = Rational(boost::multiprecision::pow(thisCopy.interval.lowerBound.numerator(), n),
+			              boost::multiprecision::pow(thisCopy.interval.lowerBound.denominator(), n));
+			r3 = Rational(boost::multiprecision::pow(thisCopy.interval.upperBound.numerator(), n),
+			              boost::multiprecision::pow(thisCopy.interval.upperBound.denominator(), n));
 		}
 		else if (thisCopy.interval.upperBound <= 0) {
 			// Both endpoints are non-positive
 			if (n % 2 == 0) {
 				// Even power: result is positive, order flips
-				l3 = thisCopy.interval.upperBound.pow(n);
-				r3 = thisCopy.interval.lowerBound.pow(n);
+				r3 = Rational(boost::multiprecision::pow(thisCopy.interval.lowerBound.numerator(), n),
+				              boost::multiprecision::pow(thisCopy.interval.lowerBound.denominator(), n));
+				l3 = Rational(boost::multiprecision::pow(thisCopy.interval.upperBound.numerator(), n),
+				              boost::multiprecision::pow(thisCopy.interval.upperBound.denominator(), n));
 			}
 			else {
 				// Odd power: result stays negative, order same
-				l3 = thisCopy.interval.lowerBound.pow(n);
-				r3 = thisCopy.interval.upperBound.pow(n);
+				l3 = Rational(boost::multiprecision::pow(thisCopy.interval.lowerBound.numerator(), n),
+				              boost::multiprecision::pow(thisCopy.interval.lowerBound.denominator(), n));
+				r3 = Rational(boost::multiprecision::pow(thisCopy.interval.upperBound.numerator(), n),
+				              boost::multiprecision::pow(thisCopy.interval.upperBound.denominator(), n));
 			}
 		}
 	}
@@ -899,34 +918,34 @@ void RealAlgebraicNumber::extensiveTest() {
 	TEST_ASSERT(ranIntZero.isZero(), "Integer constructor (zero)")
 	//printRAN("ran_int_zero", ran_int_zero);
 
-	RealAlgebraicNumber ranDoublePos(2.5);
+	/*RealAlgebraicNumber ranDoublePos(2.5);
 	auto ranDoublePosTest = RealAlgebraicNumber({Rational(-5, 2), 1}, Rational(25, 10), Rational(25, 10));
 	TEST_ASSERT(ranDoublePos == ranDoublePosTest,
 	            "Double constructor (positive)\n\t" + ranDoublePos.toString() +
-	            "\n\t" + ranDoublePosTest.toString())
+	            "\n\t" + ranDoublePosTest.toString())*/
 	//printRAN("ran_double_pos", ran_double_pos);
 
-	RealAlgebraicNumber ranDoubleNeg(-1.75);
+	/*RealAlgebraicNumber ranDoubleNeg(-1.75);
 	auto ranDoubleNegTest = RealAlgebraicNumber({Rational(7, 4), 1}, Rational(-175, 100), Rational(-175, 100));
 	TEST_ASSERT(ranDoubleNeg == ranDoubleNegTest,
 	            "Double constructor (positive)\n\t" + ranDoubleNeg.toString() +
-	            "\n\t" + ranDoubleNegTest.toString())
+	            "\n\t" + ranDoubleNegTest.toString())*/
 	//printRAN("ran_double_neg", ran_double_neg);
 
-	RealAlgebraicNumber ranDoubleZero(0.0);
-	TEST_ASSERT(ranDoubleZero.isZero(), "Double constructor (zero)")
+	/*RealAlgebraicNumber ranDoubleZero(0.0);
+	TEST_ASSERT(ranDoubleZero.isZero(), "Double constructor (zero)")*/
 	//printRAN("ran_double_zero", ran_double_zero);
 
 	// Test a known irrational number: sqrt(2)
 	// Polynomial: x^2 - 2 = 0, Interval: [1.4, 1.5]
-	RealAlgebraicNumber sqrt2PolyInterval(Polynomial({-2, 0, 1}), Rational(14, 10), Rational(15, 10));
-	TEST_ASSERT(sqrt2PolyInterval.toDecimalString(5) == "1.41421", "Polynomial+Interval constructor (sqrt(2))")
-	//printRAN("sqrt2_poly_interval", sqrt2_poly_interval);
+	//RealAlgebraicNumber sqrt2PolyInterval(Polynomial({-2, 0, 1}), Rational(14, 10), Rational(15, 10));
+	//TEST_ASSERT(sqrt2PolyInterval.toDecimalString(5) == "1.41421", "Polynomial+Interval constructor (sqrt(2))")
+	////printRAN("sqrt2_poly_interval", sqrt2_poly_interval);
 
-	// Test a known irrational number: cube root of 3
-	// Polynomial: x^3 - 3 = 0, Interval: [1.4, 1.5]
-	RealAlgebraicNumber cbrt3CoeffsInterval(Polynomial({-3, 0, 0, 1}), Rational(14, 10), Rational(15, 10));
-	TEST_ASSERT(cbrt3CoeffsInterval.toDecimalString(5) == "1.44224", "Coeffs+Interval constructor (cbrt(3))")
+	//// Test a known irrational number: cube root of 3
+	//// Polynomial: x^3 - 3 = 0, Interval: [1.4, 1.5]
+	//RealAlgebraicNumber cbrt3CoeffsInterval(Polynomial({-3, 0, 0, 1}), Rational(14, 10), Rational(15, 10));
+	//TEST_ASSERT(cbrt3CoeffsInterval.toDecimalString(5) == "1.44224", "Coeffs+Interval constructor (cbrt(3))")
 	//printRAN("cbrt3_coeffs_interval", cbrt3_coeffs_interval);
 
 	//std::cout << "\n--- Testing Arithmetic Operations ---" << std::endl;
@@ -1166,27 +1185,27 @@ void RealAlgebraicNumber::extensiveTest() {
 	RealAlgebraicNumber simpleSqrt2(Polynomial({-2, 0, 1}), Rational(1), Rational(2)); // sqrt(2)
 	//printRAN("simple_sqrt2", simple_sqrt2);
 
-	std::string sSqrt25 = simpleSqrt2.toDecimalString(5);
-	//std::cout << "sqrt(2) to 5 decimal places: " << s_sqrt2_5 << std::endl;
-	TEST_ASSERT(sSqrt25 == "1.41421", "toDecimalString(5) for sqrt(2)")
+	//std::string sSqrt25 = simpleSqrt2.toDecimalString(5);
+	////std::cout << "sqrt(2) to 5 decimal places: " << s_sqrt2_5 << std::endl;
+	//TEST_ASSERT(sSqrt25 == "1.41421", "toDecimalString(5) for sqrt(2)")
 
-	std::string sSqrt210 = simpleSqrt2.toDecimalString(10);
-	//std::cout << "sqrt(2) to 10 decimal places: " << s_sqrt2_10 << std::endl;
-	TEST_ASSERT(sSqrt210 == "1.4142135623", "toDecimalString(10) for sqrt(2)")
+	//std::string sSqrt210 = simpleSqrt2.toDecimalString(10);
+	////std::cout << "sqrt(2) to 10 decimal places: " << s_sqrt2_10 << std::endl;
+	//TEST_ASSERT(sSqrt210 == "1.4142135623", "toDecimalString(10) for sqrt(2)")
 
-	std::string sSqrt21 = simpleSqrt2.toDecimalString(1);
-	//std::cout << "sqrt(2) to 1 decimal place: " << s_sqrt2_1 << std::endl;
-	TEST_ASSERT(sSqrt21 == "1.4", "toDecimalString(1) for sqrt(2)")
+	//std::string sSqrt21 = simpleSqrt2.toDecimalString(1);
+	////std::cout << "sqrt(2) to 1 decimal place: " << s_sqrt2_1 << std::endl;
+	//TEST_ASSERT(sSqrt21 == "1.4", "toDecimalString(1) for sqrt(2)")
 
-	RealAlgebraicNumber oneThird(Rational(1, 3));
-	std::string sOneThird5 = oneThird.toDecimalString(5);
-	//std::cout << "1/3 to 5 decimal places: " << s_one_third_5 << std::endl;
-	TEST_ASSERT(sOneThird5 == "0.33333", "toDecimalString(5) for 1/3")
+	//RealAlgebraicNumber oneThird(Rational(1, 3));
+	//std::string sOneThird5 = oneThird.toDecimalString(5);
+	////std::cout << "1/3 to 5 decimal places: " << s_one_third_5 << std::endl;
+	//TEST_ASSERT(sOneThird5 == "0.33333", "toDecimalString(5) for 1/3")
 
-	RealAlgebraicNumber negOneThird(Rational(-1, 3));
-	std::string sNegOneThird5 = negOneThird.toDecimalString(5);
-	//std::cout << "-1/3 to 5 decimal places: " << s_neg_one_third_5 << std::endl;
-	TEST_ASSERT(sNegOneThird5 == "-0.33333", "toDecimalString(5) for -1/3")
+	//RealAlgebraicNumber negOneThird(Rational(-1, 3));
+	//std::string sNegOneThird5 = negOneThird.toDecimalString(5);
+	////std::cout << "-1/3 to 5 decimal places: " << s_neg_one_third_5 << std::endl;
+	//TEST_ASSERT(sNegOneThird5 == "-0.33333", "toDecimalString(5) for -1/3")
 
 
 	//std::cout << "\n--- Testing Complex Chained Operations ---" << std::endl;
@@ -1284,10 +1303,10 @@ int RealAlgebraicNumber::intervalToOrder() {
 	PROFILE_FUNCTION
 
 	// Find maximum absolute coefficient more efficiently
-	Rational fInf = polynomial.coefficients.empty() ? Rational(0) : polynomial.coefficients[0].abs();
+	Rational fInf = polynomial.coefficients.empty() ? Rational(0) : boost::abs(polynomial.coefficients[0]);
 	for (size_t i = 1; i < polynomial.coefficients.size(); ++i) {
 		//const Rational absCoeff = polynomial.coefficients[i].abs();
-		if (const Rational absCoeff = polynomial.coefficients[i].abs(); absCoeff > fInf) {
+		if (const Rational absCoeff = boost::abs(polynomial.coefficients[i]); absCoeff > fInf) {
 			fInf = absCoeff;
 		}
 	}
@@ -1308,9 +1327,9 @@ void RealAlgebraicNumber::normalize() {
 	PROFILE_FUNCTION
 
 	// Find maximum absolute coefficient more efficiently
-	Rational fInf = polynomial.coefficients.empty() ? Rational(0) : polynomial.coefficients[0].abs();
+	Rational fInf = polynomial.coefficients.empty() ? Rational(0) : boost::abs(polynomial.coefficients[0]);
 	for (size_t i = 1; i < polynomial.coefficients.size(); ++i) {
-		if (const Rational absCoeff = polynomial.coefficients[i].abs(); absCoeff > fInf) {
+		if (const Rational absCoeff = boost::abs(polynomial.coefficients[i]); absCoeff > fInf) {
 			fInf = absCoeff;
 		}
 	}
@@ -1378,64 +1397,64 @@ std::string RealAlgebraicNumber::toString() const {
 	PROFILE_FUNCTION
 	std::string output;
 	output += polynomial.toString() + " @ ";
-	const double lower = static_cast<double>(interval.lowerBound);
+	const double lower = boost::rational_cast<double>(interval.lowerBound);
 	output += std::to_string(lower);
 	output += " <= x <= ";
-	const double upper = static_cast<double>(interval.upperBound);
+	const double upper = boost::rational_cast<double>(interval.upperBound);
 	output += std::to_string(upper);
 
 	return output;
 }
 
-std::string RealAlgebraicNumber::toDecimalString(int precision) const {
-	//PROFILE_FUNCTION
-
-	// Early exit for linear polynomials
-	if (this->polynomial.degree == 1 && this->polynomial.coefficients[1] == 1) {
-		return (this->polynomial.coefficients[0] * -1).toDecimalString(precision);
-	}
-
-	RealAlgebraicNumber temp = *this;
-
-	while (true) {
-		const std::string lowerString = temp.interval.lowerBound.toDecimalString(precision);
-		const std::string upperString = temp.interval.upperBound.toDecimalString(precision);
-
-		// Find decimal point positions
-		const size_t lowerDotPos = lowerString.find('.');
-		const size_t upperDotPos = upperString.find('.');
-
-		if (lowerDotPos == std::string::npos || upperDotPos == std::string::npos) {
-			temp.refine();
-			continue;
-		}
-
-		// Extract decimal parts
-		const std::string lowerDecimal = lowerString.substr(lowerDotPos + 1);
-		const std::string upperDecimal = upperString.substr(upperDotPos + 1);
-
-		// Count matching digits
-		int matchingDigits = 0;
-		const size_t minSize = lowerDecimal.size() < upperDecimal.size() ? lowerDecimal.size() : upperDecimal.size();
-		for (size_t i = 0; i < minSize; ++i) {
-			if (lowerDecimal[i] == upperDecimal[i]) {
-				matchingDigits++;
-			}
-			else {
-				break;
-			}
-		}
-
-		if (matchingDigits >= precision) {
-			// Return result with trailing zeros removed
-			std::string result = lowerString;
-			result.erase(result.find_last_not_of('0') + 1);
-			if (result.back() == '.') {
-				result.pop_back();
-			}
-			return result;
-		}
-
-		temp.refine();
-	}
-}
+//std::string RealAlgebraicNumber::toDecimalString(int precision) const {
+//	//PROFILE_FUNCTION
+//
+//	// Early exit for linear polynomials
+//	/*if (this->polynomial.degree == 1 && this->polynomial.coefficients[1] == 1) {
+//		return (this->polynomial.coefficients[0] * -1).toDecimalString(precision);
+//	}*/
+//
+//	RealAlgebraicNumber temp = *this;
+//
+//	while (true) {
+//		/*const std::string lowerString = temp.interval.lowerBound.toDecimalString(precision);
+//		const std::string upperString = temp.interval.upperBound.toDecimalString(precision);*/
+//
+//		// Find decimal point positions
+//		const size_t lowerDotPos = lowerString.find('.');
+//		const size_t upperDotPos = upperString.find('.');
+//
+//		if (lowerDotPos == std::string::npos || upperDotPos == std::string::npos) {
+//			temp.refine();
+//			continue;
+//		}
+//
+//		// Extract decimal parts
+//		const std::string lowerDecimal = lowerString.substr(lowerDotPos + 1);
+//		const std::string upperDecimal = upperString.substr(upperDotPos + 1);
+//
+//		// Count matching digits
+//		int matchingDigits = 0;
+//		const size_t minSize = lowerDecimal.size() < upperDecimal.size() ? lowerDecimal.size() : upperDecimal.size();
+//		for (size_t i = 0; i < minSize; ++i) {
+//			if (lowerDecimal[i] == upperDecimal[i]) {
+//				matchingDigits++;
+//			}
+//			else {
+//				break;
+//			}
+//		}
+//
+//		if (matchingDigits >= precision) {
+//			// Return result with trailing zeros removed
+//			std::string result = lowerString;
+//			result.erase(result.find_last_not_of('0') + 1);
+//			if (result.back() == '.') {
+//				result.pop_back();
+//			}
+//			return result;
+//		}
+//
+//		temp.refine();
+//	}
+//}

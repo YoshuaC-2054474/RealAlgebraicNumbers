@@ -2,8 +2,13 @@
 #define POLYNOMIAL3_H
 
 #include "Rational.h"
+#include <boost/rational.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
 #include <string>
 #include <vector>
+
+//using namespace boost::multiprecision;
+//using Rational = boost::rational<cpp_int>;
 
 
 class Polynomial {

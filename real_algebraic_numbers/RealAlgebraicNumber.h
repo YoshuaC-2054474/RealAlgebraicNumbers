@@ -90,9 +90,6 @@ public:
 	std::string toString() const;
 	std::string toDecimalString(int precision = 10) const;
 
-	static void testOperators();
-	static void extensiveTest();
-
 private:
 	friend long long binomialCoeff(int n, int k);
 	friend MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const Polynomial& q);

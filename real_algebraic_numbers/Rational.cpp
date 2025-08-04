@@ -54,6 +54,8 @@ Rational::Rational(const long long numerator) : numerator(numerator), denominato
 
 Rational::Rational(const double numerator, const cpp_int& maxDenominator) {
 	PROFILE_FUNCTION
+	/*std::cout << "In Double Constructor Rational: " << numerator << ", Max Denominator: " << maxDenominator <<
+		std::endl;*/
 	if (maxDenominator <= 0) {
 		throw std::invalid_argument("Max denominator must be positive");
 	}
@@ -478,6 +480,26 @@ Rational Rational::pow(const int n) const {
 		throw std::invalid_argument("Denominator cannot be zero 4");
 	}
 	return {resNum, resDen};
+}
+
+Rational Rational::floor() const {
+	//PROFILE_FUNCTION
+	return {numerator / denominator, 1};
+}
+
+Rational Rational::ceil() const {
+	//PROFILE_FUNCTION
+	cpp_int q = numerator / denominator;
+	cpp_int r = numerator % denominator;
+
+	if (r < 0) {
+		q -= 1;
+		r += denominator;
+	}
+
+	cpp_int ceil = r == 0 ? q : q + 1;
+
+	return {ceil, 1};
 }
 
 Rational Rational::gcd(const Rational& other) const {

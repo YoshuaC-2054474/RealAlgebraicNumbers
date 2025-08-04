@@ -9,6 +9,11 @@
 #include "MyMatrix.h"
 #include "Polynomial.h"
 
+//#include <NTL/ZZX.h>
+//#include <NTL/ZZXFactoring.h>
+
+//using Polynomial = NTL::ZZX; // Using NTL's ZZX for polynomial representation
+
 struct Interval {
 	Rational lowerBound;
 	Rational upperBound;
@@ -101,10 +106,10 @@ private:
 	int intervalToOrder();
 
 	// Function to count sign variations in a sequence
-	static int countSignVariations(const std::vector<Rational>& sequence);
+	//static int countSignVariations(const std::vector<Rational>& sequence);
 
 	// Function to evaluate a polynomial at a given x-value
-	static Rational evaluatePoly(const std::vector<Rational>& sequence, const Rational& x);
+	//static Rational evaluatePoly(const std::vector<Rational>& sequence, const Rational& x);
 
 	// Function to count variations in Sturm sequence at x
 	static int variationCount(const std::vector<Polynomial>& sturm, const Rational& x);

@@ -30,11 +30,17 @@ Polynomial::Polynomial(const std::vector<Rational>& coeffs) : coefficients(coeff
 	degree = coefficients.empty() ? -1 : static_cast<int>(coefficients.size()) - 1;
 }
 
-Polynomial::Polynomial(const int zeroCoeff) {
-	const std::vector<Rational> coeffs = {zeroCoeff};
-	coefficients = coeffs;
+//Polynomial::Polynomial(const int zeroCoeff) {
+//	const std::vector<Rational> coeffs = {zeroCoeff};
+//	coefficients = coeffs;
+//
+//	degree = coefficients.empty() ? -1 : static_cast<int>(coefficients.size()) - 1;
+//}
 
-	degree = coefficients.empty() ? -1 : static_cast<int>(coefficients.size()) - 1;
+Polynomial::Polynomial(const Rational& c) {
+	coefficients.push_back(c);
+	degree = 0;
+	/*trim_zeros();*/
 }
 
 Rational findGcd(const std::vector<Rational>& arr) {
@@ -266,7 +272,10 @@ Polynomial Polynomial::polyTrim(const Polynomial& poly) {
 	Polynomial result = poly;
 
 	// Remove trailing zeros with a small epsilon tolerance
-	while (result.coefficients.size() > 1 && result.coefficients.back().abs() < 1e-9) {
+	/*while (result.coefficients.size() > 1 && result.coefficients.back().abs() < 1e-9) {
+		result.coefficients.pop_back();
+	}*/
+	while (result.coefficients.size() > 1 && result.coefficients.back() == 0) {
 		result.coefficients.pop_back();
 	}
 
@@ -307,7 +316,10 @@ std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(
 		}
 
 		// Remove leading zero
-		if (!remainder.empty() && remainder.back().abs() < 1e-9) {
+		/*if (!remainder.empty() && remainder.back().abs() < 1e-9) {
+			remainder.pop_back();
+		}*/
+		if (!remainder.empty() && remainder.back() == 0) {
 			remainder.pop_back();
 		}
 	}
@@ -339,12 +351,16 @@ Polynomial Polynomial::reflectY() const {
 	return {result};
 }
 
-std::vector<Polynomial> Polynomial::sturmSequence(const Polynomial& p) {
+std::vector<Polynomial> Polynomial::sturmSequence() {
 	PROFILE_FUNCTION
-	std::vector<Polynomial> seq;
-	seq.reserve(p.degree + 1); // Reserve space for efficiency
+	if (!sturm_sequence.empty()) {
+		return sturm_sequence;
+	}
 
-	const Polynomial s0 = polyTrim(p);
+	std::vector<Polynomial> seq;
+	seq.reserve(degree + 1); // Reserve space for efficiency
+
+	const Polynomial s0 = polyTrim(*this);
 	if (s0.coefficients.empty()) {
 		throw std::runtime_error("Zero polynomial provided.");
 	}
@@ -367,7 +383,10 @@ std::vector<Polynomial> Polynomial::sturmSequence(const Polynomial& p) {
 		auto [quotient, remainder] = polyDivide(sPrev, sCurr);
 
 		// If remainder is zero, stop
-		if (remainder.empty() || (remainder.size() == 1 && remainder[0].abs() < 1e-9)) {
+		/*if (remainder.empty() || (remainder.size() == 1 && remainder[0].abs() < 1e-9)) {
+			break;
+		}*/
+		if (remainder.empty() || (remainder.size() == 1 && remainder[0] == 0)) {
 			break;
 		}
 
@@ -378,4 +397,14 @@ std::vector<Polynomial> Polynomial::sturmSequence(const Polynomial& p) {
 
 	sturm_sequence = seq;
 	return seq;
+}
+
+Rational Polynomial::getLargestCoeff() const {
+	Rational fInf = coefficients[0].abs();
+	for (size_t i = 1; i < coefficients.size(); ++i) {
+		if (const Rational absCoeff = coefficients[i].abs(); absCoeff > fInf) {
+			fInf = absCoeff;
+		}
+	}
+	return fInf;
 }

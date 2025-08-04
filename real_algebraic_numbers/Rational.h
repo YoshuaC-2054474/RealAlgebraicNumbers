@@ -71,15 +71,16 @@ public:
 	Rational inverse() const;
 	double sqrt(int n = 2) const;
 	Rational pow(int n = 2) const;
+	Rational floor() const;
+	Rational ceil() const;
 	Rational gcd(const Rational& other) const;
 	std::vector<cpp_int> factorNumerator() const;
 	bool isInteger() const;
 
 	cpp_int numerator;
 	cpp_int denominator;
-private:
-	
 
+private:
 	void simplify();
 
 	//static cpp_int computeGcd(const cpp_int a, const cpp_int b);

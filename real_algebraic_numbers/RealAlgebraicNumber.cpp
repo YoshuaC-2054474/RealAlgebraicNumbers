@@ -525,15 +525,13 @@ RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
 
 RealAlgebraicNumber RealAlgebraicNumber::abs() const {
 	PROFILE_FUNCTION
-	// If the polynomial is positive, return it as is
 	if (this->isPositive() || this->isZero()) {
 		return *this;
 	}
-	// If the polynomial is negative, reflect it across the x-axis
 	return -(*this);
 }
 
-RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) const {
+RealAlgebraicNumber RealAlgebraicNumber::sqrt(const Rational& n) const {
 	PROFILE_FUNCTION
 	// 1. Check Non-Negativity (for even n): If n is even, ensure the algebraic number is non-negative.
 	// If it is negative, the n-th root is not real and the operation is undefined.
@@ -556,15 +554,25 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) const {
 		throw std::invalid_argument("Cannot compute negative root"); // TODO: handle negative roots (is possible)
 	}
 
-	if (n % 2 == 0 && interval.lowerBound < 0) {
+	if (n.denominator != 1) // rational root
+	{
+		/*cpp_int k = n.numerator / n.denominator;
+		cpp_int r = n.numerator % n.denominator;
+		return this->pow(k) * this->sqrt(n.denominator).pow(r);*/
+		return this->sqrt(n.numerator).pow(n.denominator);
+	}
+
+	int nn = n.numerator.convert_to<int>();
+
+	if (nn % 2 == 0 && interval.lowerBound < 0) {
 		throw std::invalid_argument("Cannot compute even root of negative number");
 	}
 
-	const int newDegree = polynomial.degree * n;
+	const int newDegree = polynomial.degree * nn;
 	std::vector<Rational> newCoeffs(newDegree + 1, 0);
 
 	for (size_t i = 0; i < polynomial.coefficients.size(); ++i) {
-		newCoeffs[i * n] = polynomial.coefficients[i];
+		newCoeffs[i * nn] = polynomial.coefficients[i];
 	}
 
 	Polynomial f3 = {newCoeffs};
@@ -577,25 +585,25 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) const {
 	Rational l3;
 	Rational r3;
 
-	if (n % 2 != 0 && interval.lowerBound < 0) {
-		l3 = -thisCopy.interval.upperBound.abs().sqrt(n) - 0.01;
-		r3 = -thisCopy.interval.lowerBound.abs().sqrt(n) + 0.01;
+	if (nn % 2 != 0 && interval.lowerBound < 0) {
+		l3 = -thisCopy.interval.upperBound.abs().sqrt(nn) - 0.01;
+		r3 = -thisCopy.interval.lowerBound.abs().sqrt(nn) + 0.01;
 	}
 	else {
-		l3 = thisCopy.interval.lowerBound.sqrt(n) - 0.01;
-		r3 = thisCopy.interval.upperBound.sqrt(n) + 0.01;
+		l3 = thisCopy.interval.lowerBound.sqrt(nn) - 0.01;
+		r3 = thisCopy.interval.upperBound.sqrt(nn) + 0.01;
 	}
 
 	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
 		//auto f1 = RealAlgebraicNumber(polynomial, interval.lowerBound, r3);
 		thisCopy.refine();
-		if (n % 2 != 0 && thisCopy.interval.lowerBound < 0) {
-			l3 = -thisCopy.interval.upperBound.abs().sqrt(n);
-			r3 = -thisCopy.interval.lowerBound.abs().sqrt(n);
+		if (nn % 2 != 0 && thisCopy.interval.lowerBound < 0) {
+			l3 = -thisCopy.interval.upperBound.abs().sqrt(nn);
+			r3 = -thisCopy.interval.lowerBound.abs().sqrt(nn);
 		}
 		else {
-			l3 = thisCopy.interval.lowerBound.sqrt(n);
-			r3 = thisCopy.interval.upperBound.sqrt(n);
+			l3 = thisCopy.interval.lowerBound.sqrt(nn);
+			r3 = thisCopy.interval.upperBound.sqrt(nn);
 		}
 	}
 
@@ -603,21 +611,30 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) const {
 	return {f3, {.lowerBound = l3, .upperBound = r3}};
 }
 
-RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
+RealAlgebraicNumber RealAlgebraicNumber::pow(const Rational& n) const {
 	PROFILE_FUNCTION
 
 	if (n == 0) {
 		std::vector<Rational> coefficients = {-1, 1};
-		return {coefficients, 1, 1}; // Represents the number 1
+		return {coefficients, 1, 1};
 	}
 	if (n == 1) {
 		return *this;
 	}
 
+	if (n.denominator != 1) // rational exponent
+	{
+		Rational floor = n.floor();
+		Rational remainder = n - floor;
+		return this->pow(floor) * this->sqrt(remainder.denominator).pow(remainder.numerator);
+	}
+
+	int nn = n.numerator.convert_to<int>();
+
 	RealAlgebraicNumber thisCopy = *this;
 	thisCopy.polynomial.normalize(thisCopy.interval.lowerBound, thisCopy.interval.upperBound);
 
-	MyMatrix<Polynomial> sylvesterMat = constructSylvesterMatrixForPower(thisCopy.polynomial, n);
+	MyMatrix<Polynomial> sylvesterMat = constructSylvesterMatrixForPower(thisCopy.polynomial, nn);
 	Polynomial f3 = sylvesterMat.determinant();
 
 	std::vector<Polynomial> sturm = f3.sturmSequence();
@@ -627,20 +644,20 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 
 	if (thisCopy.interval.lowerBound >= 0) {
 		// Both endpoints are non-negative
-		l3 = thisCopy.interval.lowerBound.pow(n);
-		r3 = thisCopy.interval.upperBound.pow(n);
+		l3 = thisCopy.interval.lowerBound.pow(nn);
+		r3 = thisCopy.interval.upperBound.pow(nn);
 	}
 	else if (thisCopy.interval.upperBound <= 0) {
 		// Both endpoints are non-positive
-		if (n % 2 == 0) {
+		if (nn % 2 == 0) {
 			// Even power: result is positive, order flips
-			l3 = thisCopy.interval.upperBound.pow(n);
-			r3 = thisCopy.interval.lowerBound.pow(n);
+			l3 = thisCopy.interval.upperBound.pow(nn);
+			r3 = thisCopy.interval.lowerBound.pow(nn);
 		}
 		else {
 			// Odd power: result stays negative, order same
-			l3 = thisCopy.interval.lowerBound.pow(n);
-			r3 = thisCopy.interval.upperBound.pow(n);
+			l3 = thisCopy.interval.lowerBound.pow(nn);
+			r3 = thisCopy.interval.upperBound.pow(nn);
 		}
 	}
 
@@ -649,20 +666,20 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(int n) const {
 		thisCopy.refine();
 		if (thisCopy.interval.lowerBound >= 0) {
 			// Both endpoints are non-negative
-			l3 = thisCopy.interval.lowerBound.pow(n);
-			r3 = thisCopy.interval.upperBound.pow(n);
+			l3 = thisCopy.interval.lowerBound.pow(nn);
+			r3 = thisCopy.interval.upperBound.pow(nn);
 		}
 		else if (thisCopy.interval.upperBound <= 0) {
 			// Both endpoints are non-positive
-			if (n % 2 == 0) {
+			if (nn % 2 == 0) {
 				// Even power: result is positive, order flips
-				l3 = thisCopy.interval.upperBound.pow(n);
-				r3 = thisCopy.interval.lowerBound.pow(n);
+				l3 = thisCopy.interval.upperBound.pow(nn);
+				r3 = thisCopy.interval.lowerBound.pow(nn);
 			}
 			else {
 				// Odd power: result stays negative, order same
-				l3 = thisCopy.interval.lowerBound.pow(n);
-				r3 = thisCopy.interval.upperBound.pow(n);
+				l3 = thisCopy.interval.lowerBound.pow(nn);
+				r3 = thisCopy.interval.upperBound.pow(nn);
 			}
 		}
 	}
@@ -775,6 +792,11 @@ int RealAlgebraicNumber::intervalToOrder() {
 
 void RealAlgebraicNumber::normalize() {
 	PROFILE_FUNCTION
+	// if interval does not contain zero, do nothing
+	if (interval.lowerBound > 0 && interval.upperBound > 0 || 
+		interval.lowerBound < 0 && interval.upperBound < 0) {
+		return;
+	}
 
 	// Find maximum absolute coefficient more efficiently
 	Rational fInf = polynomial.getLargestCoeff();

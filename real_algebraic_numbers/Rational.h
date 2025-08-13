@@ -25,10 +25,7 @@ public:
 	std::string toDecimalString(int precision) const;
 	void print() const;
 
-	int toInt() const {
-		return numerator.convert_to<int>();
-		//return { numerator.convert_to<int>(), denominator.convert_to<int>() };
-	}
+	
 
 	friend std::ostream& operator<<(std::ostream& os, const Rational& rational) {
 		os << rational.numerator;
@@ -42,14 +39,6 @@ public:
 		return numerator.convert_to<double>() / denominator.convert_to<double>();
 	}
 
-	/*Rational operator+(const Rational& other) const;
-	Rational operator-(const Rational& other) const;
-	friend Rational operator-(const cpp_int& lsh, const Rational& other);
-	
-	Rational operator*(const Rational& other) const;
-	friend Rational operator*(const cpp_int& lsh, const Rational& other);
-	Rational operator/(const Rational& other) const;
-	friend Rational operator/(const cpp_int& lsh, const Rational& other);*/
 	Rational operator%(const Rational& other) const;
 
 	Rational& operator+=(const Rational& other);
@@ -74,13 +63,12 @@ public:
 	Rational inverse() const;
 	double sqrt(int n = 2) const;
 	Rational pow(int n = 2) const;
-	/*Rational floor() const;
-	Rational ceil() const;*/
+	int toInt() const;
+	Rational floor() const;
+	Rational ceil() const;
 	Rational gcd(const Rational& other) const;
 	//std::vector<cpp_int> factorNumerator() const;
 	/*bool isInteger() const;*/
-
-	void testOperators() const;
 private:
 	void simplify();
 

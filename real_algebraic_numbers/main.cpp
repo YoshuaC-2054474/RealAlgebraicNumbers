@@ -3,6 +3,7 @@
 #include <iostream>
 //#include "Polynomial3.h"
 #include "MyTimer.h"
+#include "TestOperators.h"
 
 // Helper macro for testing assertions
 #define TEST_ASSERT(condition, message) \
@@ -18,142 +19,12 @@ static void printRAN(const std::string& name, const RealAlgebraicNumber& ran) {
 	std::cout << name << " = " << ran.toString() << "\n"; //(Decimal: " << ran.toDecimalString(15) << ")\n";
 }
 
-void testOperators() {
-	//PROFILE_FUNCTION
-	RealAlgebraicNumber a = 2;
-	RealAlgebraicNumber b = 3;
-	auto c = RealAlgebraicNumber({-2, 0, 1}, {.lowerBound = {1, 1}, .upperBound = {2, 1}}); // sqrt(2)
-	auto d = RealAlgebraicNumber({-3, 0, 1}, {.lowerBound = {1, 1}, .upperBound = {2, 1}}); // sqrt(3)
-
-	RealAlgebraicNumber e = 5;
-	RealAlgebraicNumber f = -1;
-	auto g = RealAlgebraicNumber({1, 0, -10, 0, 1}, {.lowerBound = {3146, 1000}, .upperBound = {3147, 1000}});
-	// x^4 - 10x^2 + 1
-	auto h = RealAlgebraicNumber({1, 0, -10, 0, 1}, {.lowerBound = {-318, 1000}, .upperBound = {-317, 1000}});
-	RealAlgebraicNumber i = 6;
-	auto j = RealAlgebraicNumber({2, -3}, {.lowerBound = {666, 1000}, .upperBound = {667, 1000}});
-	auto k = RealAlgebraicNumber({4, 0, -12, 0, 9}, {.lowerBound = {816, 1000}, .upperBound = {817, 1000}});
-	// 9x^4 - 12x^2 + 4
-	auto l = RealAlgebraicNumber({36, 0, -12, 0, 1}, {.lowerBound = {244, 100}, .upperBound = {245, 100}});
-	// x^4 - 12x^2 + 36
-
-	if (auto ab = a + b; ab != e)
-		std::cout << "operator+ not working!\n"
-			<< "\ta + b = " << ab << "\n\te = " << e << "\n";
-	if (auto cd = c + d; cd != g)
-		std::cout << "operator+ not working!\n"
-			<< "\tc + d = " << cd << "\n\tg = " << g << "\n";
-
-	if (auto ab = a - b; ab != f)
-		std::cout << "operator- not working!\n"
-			<< "\ta - b = " << ab << "\n\tf = " << f << "\n";
-	if (auto cd = c - d; cd != h)
-		std::cout << "operator- not working!\n"
-			<< "\tc - d = " << cd << "\n\th = " << h << "\n";
-
-	if (auto abb = a + b - b; abb != a)
-		std::cout << "operator+ and operator- not working together!\n"
-			<< "\ta + b - b = " << abb << "\n\ta = " << a << "\n";
-	if (auto cdc = c + d - c; cdc != d)
-		std::cout << "operator+ and operator- not working together!\n"
-			<< "\tc + d - c = " << cdc << "\n\td = " << d << "\n";
-
-	if (auto ab = a * b; ab != i)
-		std::cout << "operator* not working!\n"
-			<< "\ta * b = " << ab << "\n\ti = " << i << "\n";
-	if (auto cd = c * d; cd != l)
-		std::cout << "operator* not working!\n"
-			<< "\tc * d = " << cd << "\n\tl = " << l << "\n";
-
-	if (auto ab = a / b; ab != j)
-		std::cout << "operator/ not working!\n"
-			<< "\ta / b = " << ab << "\n\tj = " << j << "\n";
-	if (auto cd = c / d; cd != k)
-		std::cout << "operator/ not working!\n"
-			<< "\tc / d = " << cd << "\n\tk = " << k << "\n";
-
-	if (auto abb = a * b / b; abb != a)
-		std::cout << "operator* and operator/ not working together!\n"
-			<< "\ta * b / b = " << abb << "\n\ta = " << a << "\n";
-	if (auto cdc = c * d / c; cdc != d)
-		std::cout << "operator* and operator/ not working together!\n"
-			<< "\tc * d / c = " << cdc << "\n\td = " << d << "\n";
-
-	auto aa = a;
-	auto cc = c;
-	if (aa += b; aa != e)
-		std::cout << "operator+= not working!\n"
-			<< "\ta += b = " << aa << "\n\te = " << e << "\n";
-	if (cc += d; cc != g)
-		std::cout << "operator+= not working!\n"
-			<< "\tc += d = " << cc << "\n\tg = " << g << "\n";
-	aa = a;
-	cc = c;
-	if (aa -= b; aa != f)
-		std::cout << "operator-= not working!\n"
-			<< "\ta -= b = " << aa << "\n\tf = " << f << "\n";
-	if (cc -= d; cc != h)
-		std::cout << "operator-= not working!\n"
-			<< "\tc -= d = " << cc << "\n\th = " << h << "\n";
-	aa = a;
-	cc = c;
-	if (aa *= b; aa != i)
-		std::cout << "operator*= not working!\n"
-			<< "\ta *= b = " << aa << "\n\ti = " << i << "\n";
-	if (cc *= d; cc != l)
-		std::cout << "operator*= not working!\n"
-			<< "\tc *= d = " << cc << "\n\tl = " << l << "\n";
-	aa = a;
-	cc = c;
-	if (aa /= b; aa != j)
-		std::cout << "operator/= not working!\n"
-			<< "\ta /= b = " << aa << "\n\tj = " << j << "\n";
-	if (cc /= d; cc != k)
-		std::cout << "operator/= not working!\n"
-			<< "\tc /= d = " << cc << "\n\tk = " << k << "\n";
-
-	auto aAlt = RealAlgebraicNumber({-2, 1}, {.lowerBound = {1, 1}, .upperBound = {4, 1}});
-	auto cAlt = RealAlgebraicNumber({-2, 0, 1}, {.lowerBound = {1414, 1000}, .upperBound = {1415, 1000}});
-
-	if ((a == aAlt) == false || (c == cAlt) == false)
-		std::cout << "operator== not working!\n";
-	if ((a != b) == false || (c != d) == false)
-		std::cout << "operator!= not working!\n";
-	if ((a < b) == false || (c < d) == false)
-		std::cout << "operator< not working!\n";
-	if ((b > a) == false || (d > c) == false)
-		std::cout << "operator> not working!\n";
-	if ((a <= b) == false || (c <= d) == false || (a <= a) == false || (c <= c) == false)
-		std::cout << "operator<= not working!\n";
-	if ((b >= a) == false || (d >= c) == false || (b >= b) == false || (d >= d) == false)
-		std::cout << "operator>= not working!\n";
-
-	auto invA = RealAlgebraicNumber({-1, 2}, {.lowerBound = {3, 10}, .upperBound = {6, 10}});
-	auto invC = RealAlgebraicNumber({-1, 0, 2}, {.lowerBound = {707, 1000}, .upperBound = {708, 1000}});
-
-	if (a.inverse() != invA || c.inverse() != invC)
-		std::cout << "inverse() not working!\n";
-	if (a.inverse().inverse() != a || c.inverse().inverse() != c)
-		std::cout << "double inverse() not working!\n";
-	if (a.sqrt() != c || b.sqrt() != d)
-		std::cout << "sqrt() not working!\n";
-	if (c.pow(2) != a || d.pow(2) != b)
-		std::cout << "pow() not working!\n";
-	if (b.pow(2).sqrt() != b || d.sqrt().pow(2) != d)
-		std::cout << "sqrt() and pow() not working together! (1)\n";
-	if (a.sqrt().pow(2) != a || c.pow(2).sqrt() != c)
-		std::cout << "sqrt() and pow() not working together! (2)\n";
-
-	std::cout << "\n";
-}
-
 void extensiveTest() {
 	//std::cout << "--- Starting Extensive RealAlgebraicNumber Tests ---" << std::endl;
 	int failedTests = 0;
 
 	// Call the existing basic operator tests first
 	//std::cout << "\n--- Running Basic Operator Tests (from testOperators()) ---" << std::endl;
-	testOperators();
 	//std::cout << "--- Basic Operator Tests Finished ---" << std::endl;
 
 	//std::cout << "\n--- Testing Constructors ---" << std::endl;
@@ -523,6 +394,9 @@ void testingFunction() {
 	/*auto a = RealAlgebraicNumber({ -2,1,2 }, { {75,100},{8,10} });
 	auto b = RealAlgebraicNumber({ -3,1,3 }, { {8,10},{85,100} });*/
 	try {
+		testOperatorsRational();
+		testOperatorsPolynomial();
+		testOperatorsRAN();
 		//RealAlgebraicNumber().testOperators();
 		extensiveTest();
 
@@ -609,12 +483,12 @@ void testingFunction() {
 }
 
 int main() {
-	InitializePerformanceFrequency();
+	//InitializePerformanceFrequency();
 	for (int i = 0; i < 1; ++i) {
 		std::cout << i;
 		testingFunction();
 	}
-	atexit(PrintProfilingReport);
+	//atexit(PrintProfilingReport);
 
 	return 0;
 }

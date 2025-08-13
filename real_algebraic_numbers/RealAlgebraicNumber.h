@@ -78,8 +78,8 @@ public:
 
 	RealAlgebraicNumber inverse() const;
 	RealAlgebraicNumber abs() const;
-	RealAlgebraicNumber sqrt(int n = 2) const;
-	RealAlgebraicNumber pow(int n) const;
+	RealAlgebraicNumber sqrt(const Rational& n = 2) const;
+	RealAlgebraicNumber pow(const Rational& n) const;
 
 	bool isZero() const;
 	bool isPositive() const;

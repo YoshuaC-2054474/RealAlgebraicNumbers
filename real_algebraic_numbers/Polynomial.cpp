@@ -160,7 +160,7 @@ Polynomial Polynomial::operator-(const Polynomial& other) const {
 	for (int i = 0; i <= maxDeg; ++i) {
 		resultCoeffs.emplace_back(this->coeff(i) - other.coeff(i));
 	}
-	return {resultCoeffs};
+	return polyTrim(resultCoeffs);
 }
 
 Polynomial Polynomial::operator*(const Polynomial& other) const {

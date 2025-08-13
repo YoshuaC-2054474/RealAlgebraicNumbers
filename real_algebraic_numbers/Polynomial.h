@@ -1,15 +1,17 @@
 #ifndef POLYNOMIAL3_H
 #define POLYNOMIAL3_H
 
-//#include "Rational.h"
-#include <boost/rational.hpp>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <string>
 #include <vector>
 
-using namespace boost::multiprecision;
-using Rational = boost::rational<cpp_int>;
-
+#ifdef NORMAL_CONFIG
+	#include "Rational.h"
+#elif defined(BOOST_CONFIG)
+	#include <boost/rational.hpp>
+	using namespace boost::multiprecision;
+	using Rational = boost::rational<cpp_int>;
+#endif
 
 class Polynomial {
 public:

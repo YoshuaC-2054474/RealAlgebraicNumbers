@@ -56,7 +56,7 @@ long long binomialCoeff(const int n, int k) {
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const Polynomial& q) {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	if (p.isZero() || q.isZero()) {
 		return {0, 0};
 	}
@@ -114,7 +114,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const P
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, const Polynomial& q) {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	const int m = p.degree;
 	const int n = q.degree;
 
@@ -150,7 +150,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, con
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& p, const int k) {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	if (k <= 0) {
 		throw std::invalid_argument("Exponent k must be positive for power resultant construction.");
 	}
@@ -227,7 +227,6 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Rational& value)
 }
 
 boost::rational<cpp_int> double_to_rational(const double numerator, const cpp_int& maxDenominator = 1000000) {
-	PROFILE_FUNCTION
 	/*	std::cout << "In Double Constructor Rational: " << numerator << ", Max Denominator: " << maxDenominator <<
 		std::endl;*/
 	if (maxDenominator <= 0) {
@@ -515,12 +514,12 @@ bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	return !(*this == other);
 }
 
 bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
 
@@ -541,23 +540,23 @@ bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator>(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	return other < *this;
 }
 
 bool RealAlgebraicNumber::operator<=(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	return !(*this > other);
 }
 
 bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	return !(*this < other);
 }
 
 
 RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	if (this->isZero()) {
 		throw std::invalid_argument("Cannot compute inverse of zero");
 	}
@@ -629,24 +628,36 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const int n) const {
 
 
 	if (n % 2 != 0 && interval.lowerBound < 0) {
-		l3 = -thisCopy.interval.upperBound.abs().sqrt(n) - 0.01;
-		r3 = -thisCopy.interval.lowerBound.abs().sqrt(n) + 0.01;
+		Rational upAbs = boost::abs(thisCopy.interval.upperBound);
+		double upSqrt = std::pow(rational_cast<double>(upAbs), 1.0/n);
+		l3 = double_to_rational(-upSqrt - 0.01);
+		Rational lowAbs = boost::abs(thisCopy.interval.lowerBound);
+		double lowSqrt = std::pow(rational_cast<double>(lowAbs), 1.0 / n);
+		r3 = double_to_rational(-lowSqrt + 0.01);
 	}
 	else {
-		l3 = thisCopy.interval.lowerBound.sqrt(n) - 0.01;
-		r3 = thisCopy.interval.upperBound.sqrt(n) + 0.01;
+		double upSqrt = std::pow(rational_cast<double>(thisCopy.interval.upperBound), 1.0 / n);
+		l3 = double_to_rational(upSqrt - 0.01);
+		double lowSqrt = std::pow(rational_cast<double>(thisCopy.interval.lowerBound), 1.0 / n);
+		r3 = double_to_rational( lowSqrt + 0.01);
 	}
 
 	while (variationCount(sturm, l3) - variationCount(sturm, r3) > 1) {
 		//auto f1 = RealAlgebraicNumber(polynomial, interval.lowerBound, r3);
 		thisCopy.refine();
 		if (n % 2 != 0 && thisCopy.interval.lowerBound < 0) {
-			l3 = -thisCopy.interval.upperBound.abs().sqrt(n);
-			r3 = -thisCopy.interval.lowerBound.abs().sqrt(n);
+			Rational upAbs = boost::abs(thisCopy.interval.upperBound);
+			double upSqrt = std::pow(rational_cast<double>(upAbs), 1.0 / n);
+			l3 = double_to_rational(-upSqrt);
+			Rational lowAbs = boost::abs(thisCopy.interval.lowerBound);
+			double lowSqrt = std::pow(rational_cast<double>(lowAbs), 1.0 / n);
+			r3 = double_to_rational(-lowSqrt);
 		}
 		else {
-			l3 = thisCopy.interval.lowerBound.sqrt(n);
-			r3 = thisCopy.interval.upperBound.sqrt(n);
+			double upSqrt = std::pow(rational_cast<double>(thisCopy.interval.upperBound), 1.0 / n);
+			l3 = double_to_rational(upSqrt);
+			double lowSqrt = std::pow(rational_cast<double>(thisCopy.interval.lowerBound), 1.0 / n);
+			r3 = double_to_rational(lowSqrt);
 		}
 	}
 
@@ -887,7 +898,7 @@ void RealAlgebraicNumber::refine() {
 }
 
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	os << ran.toString();
 	return os;
 }

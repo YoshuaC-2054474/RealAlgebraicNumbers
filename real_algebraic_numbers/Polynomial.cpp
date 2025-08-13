@@ -271,10 +271,6 @@ Polynomial Polynomial::polyTrim(const Polynomial& poly) {
 	PROFILE_FUNCTION
 	Polynomial result = poly;
 
-	// Remove trailing zeros with a small epsilon tolerance
-	/*while (result.coefficients.size() > 1 && result.coefficients.back().abs() < 1e-9) {
-		result.coefficients.pop_back();
-	}*/
 	while (result.coefficients.size() > 1 && result.coefficients.back() == 0) {
 		result.coefficients.pop_back();
 	}

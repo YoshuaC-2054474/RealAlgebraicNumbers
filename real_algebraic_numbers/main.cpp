@@ -366,14 +366,10 @@ void extensiveTest() {
 	RealAlgebraicNumber sqrtFour = four.sqrt();
 	TEST_ASSERT(sqrtFour == two, "sqrt(4) == 2")
 	//printRAN("sqrt_four", sqrt_four);
-	std::cout << "sqrt(4) = " << sqrtFour.toString() << std::endl;
-	std::cout << "two = " << two.toString() << std::endl;
 
 	RealAlgebraicNumber sqrtTwo = two.sqrt();
 	TEST_ASSERT(sqrtTwo == sqrt2A, "sqrt(2) == sqrt(2)")
 	//printRAN("sqrt_two", sqrt_two);
-	std::cout << "sqrt(2) = " << sqrtTwo.toString() << std::endl;
-	std::cout << "sqrt2A = " << sqrt2A.toString() << std::endl;
 
 	RealAlgebraicNumber eight(8);
 	RealAlgebraicNumber cbrtEight = eight.sqrt(3); // Cube root of 8

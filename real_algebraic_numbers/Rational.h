@@ -8,6 +8,9 @@ using namespace boost::multiprecision;
 
 class Rational {
 public:
+	cpp_int numerator;
+	cpp_int denominator;
+
 	Rational() : numerator(0), denominator(1) {}
 	Rational(const cpp_int& num, const cpp_int& den);
 	Rational(int num, int den);
@@ -71,15 +74,13 @@ public:
 	Rational inverse() const;
 	double sqrt(int n = 2) const;
 	Rational pow(int n = 2) const;
-	Rational floor() const;
-	Rational ceil() const;
+	/*Rational floor() const;
+	Rational ceil() const;*/
 	Rational gcd(const Rational& other) const;
-	std::vector<cpp_int> factorNumerator() const;
-	bool isInteger() const;
+	//std::vector<cpp_int> factorNumerator() const;
+	/*bool isInteger() const;*/
 
-	cpp_int numerator;
-	cpp_int denominator;
-
+	void testOperators() const;
 private:
 	void simplify();
 

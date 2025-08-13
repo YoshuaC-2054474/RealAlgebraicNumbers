@@ -56,7 +56,7 @@ long long binomialCoeff(const int n, int k) {
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const Polynomial& q) {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	if (p.isZero() || q.isZero()) {
 		return {0, 0};
 	}
@@ -114,7 +114,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const P
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, const Polynomial& q) {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	const int m = p.degree;
 	const int n = q.degree;
 
@@ -150,7 +150,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, con
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& p, const int k) {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	if (k <= 0) {
 		throw std::invalid_argument("Exponent k must be positive for power resultant construction.");
 	}
@@ -466,12 +466,12 @@ bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	return !(*this == other);
 }
 
 bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
 
@@ -492,23 +492,23 @@ bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator>(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	return other < *this;
 }
 
 bool RealAlgebraicNumber::operator<=(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	return !(*this > other);
 }
 
 bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& other) const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	return !(*this < other);
 }
 
 
 RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
-	//PROFILE_FUNCTION
+	PROFILE_FUNCTION
 	if (this->isZero()) {
 		throw std::invalid_argument("Cannot compute inverse of zero");
 	}
@@ -821,7 +821,7 @@ void RealAlgebraicNumber::refine() {
 }
 
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	os << ran.toString();
 	return os;
 }

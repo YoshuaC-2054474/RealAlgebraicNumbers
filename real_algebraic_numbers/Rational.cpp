@@ -52,7 +52,7 @@ Rational::Rational(const int numerator) : numerator(numerator), denominator(1) {
 Rational::Rational(const long long numerator) : numerator(numerator), denominator(1) {}
 
 Rational::Rational(const double numerator, const cpp_int& maxDenominator) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	/*std::cout << "In Double Constructor Rational: " << numerator << ", Max Denominator: " << maxDenominator <<
 		std::endl;*/
 	if (maxDenominator <= 0) {
@@ -106,7 +106,7 @@ Rational::Rational(const float numerator) : Rational(static_cast<double>(numerat
 Rational::Rational(const Rational& other) = default;
 
 std::string Rational::toString() const {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	if (denominator == 1) return numerator.str();
 
 	// Pre-allocate string with estimated size to avoid reallocations
@@ -122,7 +122,7 @@ std::string Rational::toString() const {
 }
 
 std::string Rational::toDecimalString(int precision) const {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	if (precision < 0) {
 		throw std::invalid_argument("Precision must be non-negative.");
 	}
@@ -188,7 +188,7 @@ void Rational::print() const {
 }
 
 Rational Rational::operator%(const Rational& other) const {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	if (other.numerator == 0) throw std::invalid_argument("Division by zero");
 	const Rational fl = (*this / other).floor();
 	Rational r = *this - fl * other;
@@ -197,7 +197,7 @@ Rational Rational::operator%(const Rational& other) const {
 
 // Assignment Operators
 Rational& Rational::operator+=(const Rational& other) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 
 	// Handle zero cases
 	if (other.numerator == 0) return *this;
@@ -266,7 +266,7 @@ Rational& Rational::operator-=(const Rational& other) {
 }
 
 Rational& Rational::operator*=(const Rational& other) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 
 	// Handle zero cases early
 	if (numerator == 0 || other.numerator == 0) {
@@ -341,14 +341,14 @@ Rational& Rational::operator/=(const Rational& other) {
 }
 
 Rational operator+(const Rational& lhs, const Rational& rhs) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	Rational lhsCopy = lhs;
 	lhsCopy += rhs;
 	return lhsCopy;
 }
 
 Rational operator-(const Rational& lhs, const Rational& rhs) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	Rational lhsCopy = lhs;
 	lhsCopy -= rhs;
 	return lhsCopy;
@@ -362,14 +362,14 @@ Rational Rational::operator-() const {
 }
 
 Rational operator*(const Rational& lhs, const Rational& rhs) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	Rational lhsCopy = lhs;
 	lhsCopy *= rhs;
 	return lhsCopy;
 }
 
 Rational operator/(const Rational& lhs, const Rational& rhs) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	Rational lhsCopy = lhs;
 	lhsCopy /= rhs;
 	return lhsCopy;

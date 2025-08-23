@@ -55,7 +55,7 @@ Rational findGcd(const std::vector<Rational>& arr) {
 }
 
 std::vector<Polynomial> minimalPolynomialsNtl(const Polynomial& poly) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	ZZX f;
 	f.SetMaxLength(static_cast<long>(poly.coefficients.size()));
 
@@ -83,7 +83,7 @@ std::vector<Polynomial> minimalPolynomialsNtl(const Polynomial& poly) {
 }
 
 void Polynomial::normalize(const Rational& lowerBound, const Rational& upperBound) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (is_normalized) return;
 
 	// Remove leading zeros
@@ -152,7 +152,7 @@ Polynomial Polynomial::operator+(const Polynomial& other) const {
 }
 
 Polynomial Polynomial::operator-(const Polynomial& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	const int maxDeg = (this->degree > other.degree) ? this->degree : other.degree;
 	std::vector<Rational> resultCoeffs;
 	resultCoeffs.reserve(maxDeg + 1);
@@ -164,7 +164,7 @@ Polynomial Polynomial::operator-(const Polynomial& other) const {
 }
 
 Polynomial Polynomial::operator*(const Polynomial& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (this->isZero() || other.isZero()) {
 		return {0};
 	}
@@ -182,7 +182,7 @@ Polynomial Polynomial::operator*(const Polynomial& other) const {
 }
 
 Polynomial Polynomial::operator/(const Polynomial& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (other.isZero()) {
 		throw std::runtime_error("Division by zero polynomial!");
 	}
@@ -214,7 +214,7 @@ bool Polynomial::operator==(const Polynomial& other) const {
 }
 
 std::string Polynomial::toString() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (coefficients.empty()) return "0";
 
 	std::string output;
@@ -246,7 +246,7 @@ void Polynomial::print() const {
 }
 
 Rational Polynomial::evaluate(const Rational& x) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	Rational result = 0;
 	const int coeffLength = static_cast<int>(coefficients.size());
 	for (int i = coeffLength - 1; i >= 0; --i) {
@@ -268,7 +268,7 @@ Polynomial Polynomial::derivative() const {
 }
 
 Polynomial Polynomial::polyTrim(const Polynomial& poly) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	Polynomial result = poly;
 
 	// Remove trailing zeros with a small epsilon tolerance
@@ -282,7 +282,7 @@ Polynomial Polynomial::polyTrim(const Polynomial& poly) {
 
 std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(
 	const Polynomial& dividend, const Polynomial& divisor) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	const Polynomial a = polyTrim(dividend);
 	const Polynomial b = polyTrim(divisor);
 
@@ -346,7 +346,7 @@ Polynomial Polynomial::reflectY() const {
 }
 
 std::vector<Polynomial> Polynomial::sturmSequence() {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (!sturm_sequence.empty()) {
 		return sturm_sequence;
 	}

@@ -25,7 +25,7 @@ namespace std {
 static std::unordered_map<std::pair<int, int>, long long> binomialCache;
 
 long long binomialCoeff(const int n, int k) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	if (k < 0 || k > n) {
 		return 0;
 	}
@@ -56,7 +56,7 @@ long long binomialCoeff(const int n, int k) {
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const Polynomial& q) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (p.isZero() || q.isZero()) {
 		return {0, 0};
 	}
@@ -114,7 +114,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const P
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, const Polynomial& q) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	const int m = p.degree;
 	const int n = q.degree;
 
@@ -150,7 +150,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForProduct(const Polynomial& p, con
 
 
 MyMatrix<Polynomial> constructSylvesterMatrixForPower(const Polynomial& p, const int k) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (k <= 0) {
 		throw std::invalid_argument("Exponent k must be positive for power resultant construction.");
 	}
@@ -236,7 +236,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const double value) {
 }
 
 void RealAlgebraicNumber::refineToTolerance() {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	const Rational tolerance(1, 100); // 0.01
 	while ((this->interval.lowerBound - this->interval.upperBound).abs() > tolerance) {
 		refine();
@@ -244,40 +244,40 @@ void RealAlgebraicNumber::refineToTolerance() {
 }
 
 RealAlgebraicNumber operator+(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	RealAlgebraicNumber lhsCopy = lhs;
 	lhsCopy += rhs;
 	return lhsCopy;
 }
 
 RealAlgebraicNumber operator-(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	RealAlgebraicNumber lhsCopy = lhs;
 	lhsCopy -= rhs;
 	return lhsCopy;
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator-() const {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	return {polynomial.reflectY(), -interval.upperBound, -interval.lowerBound};
 }
 
 RealAlgebraicNumber operator*(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	RealAlgebraicNumber lhsCopy = lhs;
 	lhsCopy *= rhs;
 	return lhsCopy;
 }
 
 RealAlgebraicNumber operator/(const RealAlgebraicNumber& lhs, const RealAlgebraicNumber& rhs) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	RealAlgebraicNumber lhsCopy = lhs;
 	lhsCopy /= rhs;
 	return lhsCopy;
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator+=(const RealAlgebraicNumber& other) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (other.isZero()) {
 		return *this;
 	}
@@ -320,7 +320,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+=(const RealAlgebraicNumber& o
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator-=(const RealAlgebraicNumber& other) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (other.isZero()) {
 		return *this;
 	}
@@ -328,7 +328,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator-=(const RealAlgebraicNumber& o
 }
 
 Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	Rational min = r1;
 	if (r2 < min) min = r2;
 	if (r3 < min) min = r3;
@@ -337,7 +337,7 @@ Rational minRational(const Rational& r1, const Rational& r2, const Rational& r3,
 }
 
 Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3, const Rational& r4) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	Rational max = r1;
 	if (r2 > max) max = r2;
 	if (r3 > max) max = r3;
@@ -346,7 +346,7 @@ Rational maxRational(const Rational& r1, const Rational& r2, const Rational& r3,
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator*=(const RealAlgebraicNumber& other) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (other == 1) {
 		return *this;
 	}
@@ -415,7 +415,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*=(const RealAlgebraicNumber& o
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::operator/=(const RealAlgebraicNumber& other) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (other.isZero()) {
 		throw std::invalid_argument("Cannot divide by zero");
 	}
@@ -423,7 +423,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator/=(const RealAlgebraicNumber& o
 }
 
 bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	// make both polynomials minimal
 	// if minimal polynomials are not equal, return false
 	// if minimal polynomials are equal, check if intervals overlap
@@ -466,12 +466,12 @@ bool RealAlgebraicNumber::operator==(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator!=(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return !(*this == other);
 }
 
 bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	RealAlgebraicNumber otherCopy = other;
 	RealAlgebraicNumber thisCopy = *this;
 
@@ -492,23 +492,23 @@ bool RealAlgebraicNumber::operator<(const RealAlgebraicNumber& other) const {
 }
 
 bool RealAlgebraicNumber::operator>(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return other < *this;
 }
 
 bool RealAlgebraicNumber::operator<=(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return !(*this > other);
 }
 
 bool RealAlgebraicNumber::operator>=(const RealAlgebraicNumber& other) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	return !(*this < other);
 }
 
 
 RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (this->isZero()) {
 		throw std::invalid_argument("Cannot compute inverse of zero");
 	}
@@ -524,7 +524,7 @@ RealAlgebraicNumber RealAlgebraicNumber::inverse() const {
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::abs() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	if (this->isPositive() || this->isZero()) {
 		return *this;
 	}
@@ -532,7 +532,7 @@ RealAlgebraicNumber RealAlgebraicNumber::abs() const {
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::sqrt(const Rational& n) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	// 1. Check Non-Negativity (for even n): If n is even, ensure the algebraic number is non-negative.
 	// If it is negative, the n-th root is not real and the operation is undefined.
 	// 2. Construct the New Polynomial: For the given polynomial p(x) and the root a,
@@ -612,7 +612,7 @@ RealAlgebraicNumber RealAlgebraicNumber::sqrt(const Rational& n) const {
 }
 
 RealAlgebraicNumber RealAlgebraicNumber::pow(const Rational& n) const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 
 	if (n == 0) {
 		std::vector<Rational> coefficients = {-1, 1};
@@ -689,7 +689,7 @@ RealAlgebraicNumber RealAlgebraicNumber::pow(const Rational& n) const {
 }
 
 bool RealAlgebraicNumber::isZero() const {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	if (this->polynomial == Polynomial({0, 1})) {
 		return this->interval.lowerBound <= 0 && this->interval.upperBound >= 0;
 	}
@@ -697,7 +697,7 @@ bool RealAlgebraicNumber::isZero() const {
 }
 
 bool RealAlgebraicNumber::isPositive() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	// Check if the polynomial is positive in the interval
 	RealAlgebraicNumber thisCopy = *this;
 	thisCopy.normalize();
@@ -712,7 +712,7 @@ bool RealAlgebraicNumber::isPositive() const {
 }
 
 bool RealAlgebraicNumber::isNegative() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	// Check if the polynomial is negative in the interval
 	RealAlgebraicNumber thisCopy = *this;
 	thisCopy.normalize();
@@ -726,7 +726,7 @@ bool RealAlgebraicNumber::isNegative() const {
 }
 
 //int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequence) {
-//	//PROFILE_FUNCTION
+//	////PROFILE_FUNCTION
 //	int variations = 0;
 //	int prevSign = 0;
 //
@@ -743,7 +743,7 @@ bool RealAlgebraicNumber::isNegative() const {
 //}
 
 //Rational RealAlgebraicNumber::evaluatePoly(const std::vector<Rational>& sequence, const Rational& x) {
-//	PROFILE_FUNCTION
+//	//PROFILE_FUNCTION
 //	Rational result = 0;
 //	const int seqSize = static_cast<int>(sequence.size());
 //	for (int i = seqSize - 1; i >= 0; i--) {
@@ -753,7 +753,7 @@ bool RealAlgebraicNumber::isNegative() const {
 //}
 
 int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, const Rational& x) {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	std::vector<Rational> evaluations;
 	evaluations.reserve(sturm.size());
 
@@ -779,7 +779,7 @@ int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, co
 }
 
 int RealAlgebraicNumber::intervalToOrder() {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 
 	// Find maximum absolute coefficient more efficiently
 	const Rational fInf = polynomial.getLargestCoeff();
@@ -791,7 +791,7 @@ int RealAlgebraicNumber::intervalToOrder() {
 }
 
 void RealAlgebraicNumber::normalize() {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	// if interval does not contain zero, do nothing
 	if (interval.lowerBound > 0 && interval.upperBound > 0 || 
 		interval.lowerBound < 0 && interval.upperBound < 0) {
@@ -824,7 +824,7 @@ void RealAlgebraicNumber::normalize() {
 
 
 void RealAlgebraicNumber::refine() {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 
 	// Get or compute Sturm sequence
 	std::vector<Polynomial> sturm = polynomial.sturmSequence();
@@ -843,13 +843,13 @@ void RealAlgebraicNumber::refine() {
 }
 
 std::ostream& operator<<(std::ostream& os, const RealAlgebraicNumber& ran) {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	os << ran.toString();
 	return os;
 }
 
 std::string RealAlgebraicNumber::toString() const {
-	PROFILE_FUNCTION
+	//PROFILE_FUNCTION
 	std::string output;
 	output += polynomial.toString() + " @ ";
 	const double lower = static_cast<double>(interval.lowerBound);
@@ -862,7 +862,7 @@ std::string RealAlgebraicNumber::toString() const {
 }
 
 std::string RealAlgebraicNumber::toDecimalString(int precision) const {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 
 	// Early exit for linear polynomials
 	if (this->polynomial.degree == 1 && this->polynomial.coefficients[1] == 1) {

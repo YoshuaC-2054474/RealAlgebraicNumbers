@@ -1,6 +1,10 @@
 #ifndef TEST_OPERATORS_H
 #define TEST_OPERATORS_H
-#include "Rational.h"
+
+#ifdef NORMAL_CONFIG
+	#include "Rational.h"
+#endif
+
 #include "RealAlgebraicNumber.h"
 #include "Polynomial.h"
 
@@ -501,7 +505,7 @@ void testOperatorsPolynomial() {
 }
 
 void testOperatorsRAN() {
-	//PROFILE_FUNCTION
+	////PROFILE_FUNCTION
 	
 	// Define some key algebraic numbers for testing
 	// sqrt(2) is a root of x^2 - 2 = 0, in the interval [1, 2]

@@ -275,33 +275,28 @@ void testingFunction() {
 	PROFILE_FUNCTION
 
 	try {
-		//testOperatorsRational();
-		//testOperatorsPolynomial();
-		//testOperatorsRAN();
+		testOperatorsRational();
+		testOperatorsPolynomial();
+		testOperatorsRAN();
 		extensiveTest();
 
 		Ran a = 2;
 		auto t1 = a.sqrt();
-		//std::cout << "sqrt(2) = " << t1.toString() << std::endl;
 		auto t2 = t1 + 2;
-		//std::cout << "sqrt(2) + 2 = " << t2.toString() << std::endl;
 		auto t3 = t2.sqrt();
-		//std::cout << "sqrt(sqrt(2) + 2) = " << t3.toString() << std::endl;
 		auto t4 = t3 + 2;
-		//std::cout << "sqrt(sqrt(2) + 2) + 2 = " << t4.toString() << std::endl;
 		auto t5 = t4.sqrt();
-		//std::cout << "sqrt(sqrt(sqrt(2) + 2) + 2) = " << t5.toString() << std::endl;
+		if (t5.polynomial != Polynomial({ 2, 0, -16, 0, 20, 0, -8, 0, 1 })) // known result
+			std::cout << "Error: t5 polynomial incorrect\n";
 
 		auto temp1 = t5.pow(2);
-		//std::cout << "sqrt(sqrt(2) + 2) + 2 = " << temp1.toString() << std::endl;
 		auto temp2 = temp1 - 2;
-		//std::cout << "sqrt(sqrt(2) + 2) = " << temp2.toString() << std::endl;
 		auto temp3 = temp2.pow(2);
-		//std::cout << "sqrt(2) + 2 = " << temp3.toString() << std::endl;
 		auto temp4 = temp3 - 2;
-		//std::cout << "sqrt(2) = " << temp4.toString() << std::endl;
 		auto temp5 = temp4.pow(2);
-		//std::cout << "2 = " << temp5.toString() << std::endl;
+		if (temp5.polynomial != Polynomial({ -2, 1 })) // known result
+			std::cout << "Error: temp5 polynomial incorrect\n";
+
 		if (a != temp5)
 			std::cout << "Error: a != temp5\n";
 		if (t1 != temp4)
@@ -313,11 +308,6 @@ void testingFunction() {
 		if (t4 != temp1)
 			std::cout << "Error: t4 != temp1\n";
 
-		/*Ran b = ((a.sqrt() + 2).sqrt() + 2).sqrt();
-		Ran c = ((b.pow(2) - 2).pow(2) - 2).pow(2);*/
-		//std::cout << "c = " << c.toDecimalString() << std::endl;
-		//std::cout << "a == c = " << (a == c) << std::endl;
-
 		auto aa = (Ran(3504) / 100) - 35;
 		auto bb = 9 / Ran(93).sqrt() + (Ran(5654) / 100);
 		auto cc = (Ran(192) / 10) / 96;
@@ -326,25 +316,9 @@ void testingFunction() {
 		auto ee = (Ran(9758) / 100) / (Ran(6145) / 100);
 		auto ff = Ran(28).pow(2) * 78 + Ran(42).sqrt();
 		auto gg = 2 * 46 + Ran(3).pow(2);
-		auto hh = (Ran(5431) / 100) - 32 / Ran(83).pow(4) / Ran(94).
-			pow(3);
+		auto hh = (Ran(5431) / 100) - 32 / Ran(83).pow(4) / Ran(94).pow(3);
 		auto ii = 55 - 32 + 76 - (Ran(597) / 10);
 		auto jj = (Ran(2661) / 100).pow(2) + (Ran(1878) / 100) / 48;
-
-		/*if (aa.toDecimalString(3) != "0.04")
-			std::cout << "Error: aa != expected value\n";*/
-		/*if (bb != Ran(Polynomial({247682299, -8763700, 77500}), Rational(574, 10), Rational(575, 10)))
-			std::cout << "Error: bb != expected value\n";
-		if (cc != Ran(Polynomial({-1, 5}), Rational(1, 10), Rational(3, 10)))
-			std::cout << "Error: cc != expected value\n";
-		if (dd != Ran(Polynomial({285931907, 8364050}), Rational(-3418, 100), Rational(-3419, 100)))
-			std::cout << "Error: dd != expected value\n";
-		if (ee != Ran(Polynomial({-9758, 6145}), Rational(158, 100), Rational(159, 100)))
-			std::cout << "Error: ee != expected value\n";*/
-		// ff polynomial overflows int
-		/*if (hh.toDecimalString(20) != "54.30999999999918819065")
-			std::cout << "Error: ff != expected value\n";*/
-
 
 		/*std::cout << "aa = " << aa.toDecimalString(20) << std::endl;
 		std::cout << "bb = " << bb.toDecimalString(20) << std::endl;
@@ -362,9 +336,16 @@ void testingFunction() {
 	}
 }
 
+void complexityChecker() {
+	PROFILE_FUNCTION
+	auto a = RealAlgebraicNumber(Polynomial({1,2,3,4,5,6}), Rational(-100), Rational(100));
+	auto b = RealAlgebraicNumber(Polynomial({ 6,5,4,3,2,1 }), Rational(-100), Rational(100));
+	auto c = a + b;
+}
+
 int main() {
 	InitializePerformanceFrequency();
-	for (int i = 0; i < 200; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		std::cout << i;
 		testingFunction();
 	}

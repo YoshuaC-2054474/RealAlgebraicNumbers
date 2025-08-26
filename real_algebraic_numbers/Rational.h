@@ -25,8 +25,6 @@ public:
 	std::string toDecimalString(int precision) const;
 	void print() const;
 
-	
-
 	friend std::ostream& operator<<(std::ostream& os, const Rational& rational) {
 		os << rational.numerator;
 		if (rational.denominator != 1) {
@@ -67,12 +65,8 @@ public:
 	Rational floor() const;
 	Rational ceil() const;
 	Rational gcd(const Rational& other) const;
-	//std::vector<cpp_int> factorNumerator() const;
-	/*bool isInteger() const;*/
 private:
 	void simplify();
-
-	//static cpp_int computeGcd(const cpp_int a, const cpp_int b);
 };
 
 #endif

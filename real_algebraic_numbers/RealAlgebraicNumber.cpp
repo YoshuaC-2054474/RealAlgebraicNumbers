@@ -70,7 +70,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const P
 	// Fill n rows for p(x) - optimized with fewer temporary objects
 	for (int i = 0; i < n; ++i) {
 		for (int j = 0; j <= m; ++j) {
-			sylvester.set_element(i, i + j, Polynomial(p.coeff(j)));
+			sylvester.set_element(i, i + j, Polynomial(p.coeff(p.coefficients.size()-1 - j)));
 		}
 	}
 
@@ -106,7 +106,7 @@ MyMatrix<Polynomial> constructSylvesterMatrixForSum(const Polynomial& p, const P
 	// Fill the m rows for G(x)
 	for (int i = 0; i < m; ++i) {
 		for (int j = 0; j <= n; ++j) {
-			sylvester.set_element(n + i, i + j, coeffsOfGInX[j]);
+			sylvester.set_element(n + i, i + j, coeffsOfGInX[q.coefficients.size() - 1 - j]);
 		}
 	}
 	return sylvester;
@@ -289,6 +289,7 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+=(const RealAlgebraicNumber& o
 
 	// Construct Sylvester matrix and compute determinant
 	MyMatrix<Polynomial> sylvesterMat = constructSylvesterMatrixForSum(this->polynomial, other.polynomial);
+	//sylvesterMat.print();
 	Polynomial f3 = sylvesterMat.determinant();
 
 	// Get or compute Sturm sequence
@@ -312,7 +313,6 @@ RealAlgebraicNumber RealAlgebraicNumber::operator+=(const RealAlgebraicNumber& o
 
 	f3.normalize(l3, r3);
 
-	// Update this object
 	this->polynomial = std::move(f3);
 	this->interval = {.lowerBound = l3, .upperBound = r3};
 
@@ -364,7 +364,6 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*=(const RealAlgebraicNumber& o
 		return *this; // Return zero
 	}
 
-
 	// Create working copies and normalize
 	RealAlgebraicNumber thisCopy = *this;
 	RealAlgebraicNumber otherCopy = other;
@@ -407,7 +406,6 @@ RealAlgebraicNumber RealAlgebraicNumber::operator*=(const RealAlgebraicNumber& o
 
 	f3.normalize(l3, r3);
 
-	// Update this object
 	this->polynomial = std::move(f3);
 	this->interval = {.lowerBound = l3, .upperBound = r3};
 
@@ -725,40 +723,12 @@ bool RealAlgebraicNumber::isNegative() const {
 	return false;
 }
 
-//int RealAlgebraicNumber::countSignVariations(const std::vector<Rational>& sequence) {
-//	////PROFILE_FUNCTION
-//	int variations = 0;
-//	int prevSign = 0;
-//
-//	for (const Rational& value : sequence) {
-//		if (value != 0) {
-//			const int currentSign = (value > 0) ? 1 : -1;
-//			if (prevSign != 0 && currentSign != prevSign) {
-//				variations++;
-//			}
-//			prevSign = currentSign;
-//		}
-//	}
-//	return variations;
-//}
-
-//Rational RealAlgebraicNumber::evaluatePoly(const std::vector<Rational>& sequence, const Rational& x) {
-//	//PROFILE_FUNCTION
-//	Rational result = 0;
-//	const int seqSize = static_cast<int>(sequence.size());
-//	for (int i = seqSize - 1; i >= 0; i--) {
-//		result = result * x + sequence[i];
-//	}
-//	return result;
-//}
-
 int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, const Rational& x) {
 	//PROFILE_FUNCTION
 	std::vector<Rational> evaluations;
 	evaluations.reserve(sturm.size());
 
 	for (const auto& poly : sturm) {
-		//evaluations.push_back(evaluatePoly(poly.coefficients, x));
 		evaluations.push_back(poly.evaluate(x));
 	}
 
@@ -775,7 +745,6 @@ int RealAlgebraicNumber::variationCount(const std::vector<Polynomial>& sturm, co
 		}
 	}
 	return variations;
-	//return countSignVariations(evaluations);
 }
 
 int RealAlgebraicNumber::intervalToOrder() {

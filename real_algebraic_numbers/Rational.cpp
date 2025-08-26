@@ -52,9 +52,6 @@ Rational::Rational(const int numerator) : numerator(numerator), denominator(1) {
 Rational::Rational(const long long numerator) : numerator(numerator), denominator(1) {}
 
 Rational::Rational(const double numerator, const cpp_int& maxDenominator) {
-	////PROFILE_FUNCTION
-	/*std::cout << "In Double Constructor Rational: " << numerator << ", Max Denominator: " << maxDenominator <<
-		std::endl;*/
 	if (maxDenominator <= 0) {
 		throw std::invalid_argument("Max denominator must be positive");
 	}
@@ -175,8 +172,6 @@ std::string Rational::toDecimalString(int precision) const {
 
 	// --- 5. Combine and return the result ---
 	if (precision == 0) {
-		// Note: Standard rounding would be applied here if needed.
-		// This implementation simply truncates.
 		return signStr + integerPart.str();
 	}
 
@@ -304,9 +299,6 @@ Rational& Rational::operator*=(const Rational& other) {
 }
 
 Rational& Rational::operator/=(const Rational& other) {
-	if (denominator == 0 || other.denominator == 0) {
-		throw std::invalid_argument("Denominator cannot be zero 4");
-	}
 	if (other.numerator == 0) {
 		throw std::overflow_error("Division by zero (rational number has zero numerator).");
 	}
@@ -315,6 +307,10 @@ Rational& Rational::operator/=(const Rational& other) {
 	// Handle unit cases
 	if (other.numerator == other.denominator) {
 		return *this; // Dividing by 1
+	}
+	if (numerator == denominator) {
+		*this = other.inverse(); // This is 1, so result is other inverted
+		return *this;
 	}
 
 	// Cross-reduce to prevent intermediate overflow

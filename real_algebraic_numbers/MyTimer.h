@@ -1,5 +1,5 @@
 // profiler.h
-#pragma once // Ensures this header is included only once per compilation unit
+#pragma once
 
 #include <windows.h> // For QueryPerformanceCounter, QueryPerformanceFrequency, Sleep
 #include <iostream>

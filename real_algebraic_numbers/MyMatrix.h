@@ -28,14 +28,28 @@ public:
         return data[r][c];
     }
 
-    void print() const {
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                std::cout << data[i][j] << "\t";
-            }
-            std::cout << std::endl;
-        }
-    }
+	void print() const {
+		std::cout << "Matrix (" << rows << "x" << cols << "):" << std::endl;
+		int longest = 0;
+		for (int i = 0; i < rows; ++i) {
+			for (int j = 0; j < cols; ++j) {
+				int len = data[i][j].toString().length();
+				if (len > longest) {
+					longest = len;
+				}
+			}
+		}
+		for (int i = 0; i < rows; ++i) {
+			for (int j = 0; j < cols; ++j) {
+				std::cout << data[i][j];
+				for (int k = 0; k < longest - data[i][j].toString().length() + 1; ++k) {
+					std::cout << " ";
+				}
+				std::cout << "| ";
+			}
+			std::cout << std::endl;
+		}
+	}
 
     // Bareiss Algorithm for Determinant (Optimized)
     T determinant() const {

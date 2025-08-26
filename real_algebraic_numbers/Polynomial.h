@@ -21,12 +21,10 @@ public:
 	Polynomial() : degree(-1), coefficients({}) {}
 	Polynomial(std::initializer_list<int> coeffs);
 	Polynomial(const std::vector<Rational>& coeffs);
-	//Polynomial(int zeroCoeff);
 	Polynomial(const Rational& c);
 
 	void normalize(const Rational& lowerBound, const Rational& upperBound);
 
-	// Check if the polynomial is zero
 	bool isZero() const;
 
 	Rational coeff(const int idx) const {
@@ -70,6 +68,10 @@ public:
 
 	std::string toString() const;
 	void print() const;
+	friend std::ostream& operator<<(std::ostream& os, const Polynomial& poly) {
+		os << poly.toString();
+		return os;
+	}
 
 	Polynomial reflectY() const;
 	Rational evaluate(const Rational& x) const;
@@ -79,7 +81,6 @@ public:
 private:
 	bool is_normalized = false;
 	std::vector<Polynomial> sturm_sequence = {};
-
 
 	Polynomial derivative() const;
 	static Polynomial polyTrim(const Polynomial& poly);

@@ -79,24 +79,16 @@ void PrintProfilingReport() {
 		funcName = funcName.substr(0, funcName.find('(')); // Trim to function name only
 		funcName.erase(remove_if(funcName.begin(), funcName.end(), isspace), funcName.end());
 
-
 		const FunctionStats& stats = pair.second;
 
 		double totalTimeMs = static_cast<double>(stats.totalTimeUs) / 1000.0;
 		double avgTimeMs = (stats.callCount > 0) ? (totalTimeMs / stats.callCount) : 0.0;
 		std::vector<long long> timeSamples = stats.timeSamples;
 
-
 		// calculate min, max, and median, std
 		std::sort(timeSamples.begin(), timeSamples.end());
 		double minTime = static_cast<double>(timeSamples.front()) / 1000.0;
 		double maxTime = static_cast<double>(timeSamples.back()) / 1000.0;
-		//double medianTime = (timeSamples.size() % 2 == 0)
-		//	                    ? (static_cast<double>(timeSamples[timeSamples.size() / 2 - 1] + timeSamples[
-		//		                    timeSamples.size() / 2]) / 2.0)
-		//	                    : static_cast<double>(timeSamples[timeSamples.size() / 2]);
-		////double sum = std::accumulate(timeSamples.begin(), timeSamples.end(), 0LL);
-		//double meanTime = totalTimeMs / stats.callCount;
 		double variance = 0.0;
 		for (const auto& sample : timeSamples) {
 			double sampleMs = static_cast<double>(sample) / 1000.0;
@@ -104,13 +96,6 @@ void PrintProfilingReport() {
 		}
 		variance /= static_cast<double>(timeSamples.size());
 		double stdDevTime = std::sqrt(variance);
-		// print
-		/*std::cout << "Time samples for " << funcName << ":\n";
-		std::cout << "  Min: " << minTime << " us\n";
-		std::cout << "  Max: " << maxTime << " us\n";
-		std::cout << "  Median: " << medianTime << " us\n";
-		std::cout << "  Mean: " << meanTime << " us\n";
-		std::cout << "  Std Dev: " << stdDevTime << " us\n";*/
 
 		std::cout << std::left << std::setw(60) << funcName
 			<< std::right << std::setw(15) << stats.callCount
@@ -120,13 +105,6 @@ void PrintProfilingReport() {
 			<< std::right << std::setw(20) << maxTime
 			<< std::right << std::setw(20) << stdDevTime
 			<< std::endl;
-
-		/*if (stats.callCount <= 100) {
-			for (size_t i = 0; i < stats.timeSamples.size(); ++i) {
-				std::cout << stats.timeSamples[i] << " ";
-			}
-			std::cout << "\n";
-		}*/
 	}
 
 	std::cout << std::string(175, '-') << std::endl;

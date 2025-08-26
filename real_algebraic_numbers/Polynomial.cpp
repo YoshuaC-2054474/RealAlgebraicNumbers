@@ -30,17 +30,9 @@ Polynomial::Polynomial(const std::vector<Rational>& coeffs) : coefficients(coeff
 	degree = coefficients.empty() ? -1 : static_cast<int>(coefficients.size()) - 1;
 }
 
-//Polynomial::Polynomial(const int zeroCoeff) {
-//	const std::vector<Rational> coeffs = {zeroCoeff};
-//	coefficients = coeffs;
-//
-//	degree = coefficients.empty() ? -1 : static_cast<int>(coefficients.size()) - 1;
-//}
-
 Polynomial::Polynomial(const Rational& c) {
 	coefficients.push_back(c);
 	degree = 0;
-	/*trim_zeros();*/
 }
 
 Rational findGcd(const std::vector<Rational>& arr) {
@@ -221,21 +213,13 @@ std::string Polynomial::toString() const {
 	output.reserve(coefficients.size() * 10); // Reserve space to avoid reallocations
 
 	for (int i = static_cast<int>(coefficients.size()) - 1; i >= 0; --i) {
-		if (coefficients[i] == 0) continue;
-
-		if (coefficients[i] > 0 && !output.empty()) output += " + ";
-		else if (coefficients[i] < 0) output += " - ";
-
-		const Rational absCoeff = coefficients[i].abs();
-		if (absCoeff != 1 || i == 0) {
-			output += absCoeff.toString();
-		}
+		output += coefficients[i].toString();
 
 		if (i > 1) {
-			output += "x^" + std::to_string(i);
+			output += "x^" + std::to_string(i) + " ";
 		}
 		else if (i == 1) {
-			output += "x";
+			output += "x ";
 		}
 	}
 	return output;
@@ -311,10 +295,6 @@ std::pair<std::vector<Rational>, std::vector<Rational>> Polynomial::polyDivide(
 			remainder[power + i] -= factor * b.coefficients[i];
 		}
 
-		// Remove leading zero
-		/*if (!remainder.empty() && remainder.back().abs() < 1e-9) {
-			remainder.pop_back();
-		}*/
 		if (!remainder.empty() && remainder.back() == 0) {
 			remainder.pop_back();
 		}
@@ -378,10 +358,6 @@ std::vector<Polynomial> Polynomial::sturmSequence() {
 		// Compute polynomial remainder of S_prev divided by S_curr
 		auto [quotient, remainder] = polyDivide(sPrev, sCurr);
 
-		// If remainder is zero, stop
-		/*if (remainder.empty() || (remainder.size() == 1 && remainder[0].abs() < 1e-9)) {
-			break;
-		}*/
 		if (remainder.empty() || (remainder.size() == 1 && remainder[0] == 0)) {
 			break;
 		}

@@ -13,15 +13,13 @@ using Ran = RealAlgebraicNumber;
 // Helper macro for testing assertions
 #define TEST_ASSERT(condition, message) \
     if (!(condition)) { \
-        std::cerr << "FAILED: " << message /*<< " at " << __FILE__ << ":" << __LINE__ */ << std::endl; \
+        std::cerr << "FAILED: " << message  << std::endl; \
         failedTests++; \
-    } /*else { \
-        std::cout << "PASSED: " << message << std::endl; \
-    }*/
+    }
 
 // Helper function to print a Ran
 static void printRAN(const std::string& name, const Ran& ran) {
-	std::cout << name << " = " << ran.toString() << "\n"; //(Decimal: " << ran.toDecimalString(15) << ")\n";
+	std::cout << name << " = " << ran.toString() << "\n";
 }
 
 void extensiveTest() {

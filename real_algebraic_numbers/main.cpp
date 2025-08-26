@@ -1,12 +1,12 @@
 #include "RealAlgebraicNumber.h"
 #include <string>
 #include <iostream>
-//#include "Polynomial3.h"
 #include "MyTimer.h"
 
-#ifdef NORMAL_CONFIG
-	#include "TestOperators.h"
-#endif
+//#ifdef NORMAL_CONFIG
+//	#include "TestOperators.h"
+//#endif
+#include "TestOperators.h"
 
 using Ran = RealAlgebraicNumber;
 

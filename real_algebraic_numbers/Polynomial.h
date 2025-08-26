@@ -5,13 +5,14 @@
 #include <string>
 #include <vector>
 
-#ifdef NORMAL_CONFIG
-	#include "Rational.h"
-#elif defined(BOOST_CONFIG)
-	#include <boost/rational.hpp>
-	using namespace boost::multiprecision;
-	using Rational = boost::rational<cpp_int>;
-#endif
+//#ifdef NORMAL_CONFIG
+//	#include "Rational.h"
+//#elif defined(BOOST_CONFIG)
+//	#include <boost/rational.hpp>
+//	using namespace boost::multiprecision;
+//	using Rational = boost::rational<cpp_int>;
+//#endif
+#include "Rational.h"
 
 class Polynomial {
 public:
